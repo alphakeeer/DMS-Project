@@ -17,7 +17,7 @@ from sqlalchemy import CheckConstraint, UniqueConstraint, func, PrimaryKeyConstr
 
 # ──────────────────────────────── 基础表 ────────────────────────────────
 class Department(db.Model):
-    __tablename__ = "departments"
+    __tablename__ = "department"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
@@ -27,7 +27,7 @@ class Department(db.Model):
 
 
 class Role(db.Model):
-    __tablename__ = "roles"
+    __tablename__ = "role"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
@@ -41,7 +41,7 @@ class ObjectType(db.Model):
     Polymorphic pointer to either Department or Role.
     code ∈ {'department', 'role'} 决定 ref_id 指向哪张表。
     """
-    __tablename__ = "object_types"
+    __tablename__ = "object_type"
     __table_args__ = (
         CheckConstraint("code IN ('department','role')",
                         name="chk_object_type_code"),
@@ -108,7 +108,6 @@ class Event(db.Model):
     name = db.Column(db.String(200), nullable=False)
     organizer_id = db.Column(
         db.Integer, db.ForeignKey("members.id"), nullable=False)
-    event_code = db.Column(db.String(64), unique=True)
     reg_start = db.Column(db.DateTime, nullable=False)
     reg_end = db.Column(db.DateTime, nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)
@@ -117,7 +116,7 @@ class Event(db.Model):
     max_capacity = db.Column(db.Integer)
     min_capacity = db.Column(db.Integer, default=0)
     attendee_count = db.Column(db.Integer, default=0)
-    is_successful = db.Column(db.Boolean,default=False)
+    is_successful = db.Column(db.Boolean, default=False)
 
     organizer = db.relationship(
         "Member", backref=db.backref("organized_events", lazy="dynamic")
