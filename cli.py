@@ -48,18 +48,6 @@ def test_conn():
     except Exception as e:
         click.echo(f'❌ 连接失败：{e}')
         
-@app.cli.command('add-member')
-@click.argument('name')
-@click.option('--can-create-event/--no-create-event', default=False,
-              help='是否有创建活动权限，默认否')
-@with_appcontext
-def add_member(name, can_create_event):
-    """插入一个新成员"""
-    member = Member(name=name, can_create_event=can_create_event)
-    db.session.add(member)
-    db.session.commit()
-    click.echo(f'✅ 插入成功：id={member.id}，name={member.name}，can_create_event={member.can_create_event}')
-    
 @app.cli.command('reset-db')
 @with_appcontext
 def reset_db():

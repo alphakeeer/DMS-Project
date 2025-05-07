@@ -43,7 +43,7 @@ class DevelopmentConfig(BaseConfig):
 
     # 本地 MySQL，用户名/密码/主机/端口/数据库名，可按需修改
     SQLALCHEMY_DATABASE_URI = (
-        "mysql+pymysql://root:66016601@127.0.0.1:3306/school_events"
+        "mysql+pymysql://user:pass@127.0.0.1:3306/school_events"
         "?charset=utf8mb4"
     )
 
