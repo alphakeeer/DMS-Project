@@ -17,7 +17,7 @@ from sqlalchemy import CheckConstraint, UniqueConstraint, func, PrimaryKeyConstr
 
 # ──────────────────────────────── 基础表 ────────────────────────────────
 class Department(db.Model):
-    __tablename__ = "department"
+    __tablename__ = "departments"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
@@ -27,7 +27,7 @@ class Department(db.Model):
 
 
 class Role(db.Model):
-    __tablename__ = "role"
+    __tablename__ = "roles"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
@@ -41,7 +41,7 @@ class ObjectType(db.Model):
     Polymorphic pointer to either Department or Role.
     code ∈ {'department', 'role'} 决定 ref_id 指向哪张表。
     """
-    __tablename__ = "object_type"
+    __tablename__ = "object_types"
     __table_args__ = (
         CheckConstraint("code IN ('department','role')",
                         name="chk_object_type_code"),
