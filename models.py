@@ -11,3 +11,14 @@ models.py — ORM 模型层
   • 表结构变更时，仅在此处修改字段／约束  
   • 别在这里写复杂业务逻辑或 HTTP 相关代码
 """
+from app import db
+
+class Member(db.Model):
+    __tablename__ = 'member'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=False)
+    can_create_event = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f"<Member id={self.id} name={self.name} can_create_event={self.can_create_event}>"
