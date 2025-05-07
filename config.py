@@ -18,6 +18,7 @@ config.py — 环境配置中心
 
 import os
 
+
 class BaseConfig:
     """
     基础配置（所有环境共享）
@@ -42,7 +43,7 @@ class DevelopmentConfig(BaseConfig):
 
     # 本地 MySQL，用户名/密码/主机/端口/数据库名，可按需修改
     SQLALCHEMY_DATABASE_URI = (
-        "mysql+pymysql://dev:dev@127.0.0.1:3306/eventdb"
+        "mysql+pymysql://root:66016601@127.0.0.1:3306/school_events"
         "?charset=utf8mb4"
     )
 
@@ -60,7 +61,7 @@ class ProductionConfig(BaseConfig):
     # 从环境变量读取，确保安全
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
-        "mysql+pymysql://user:pass@db:3306/eventdb?charset=utf8mb4"
+        "mysql+pymysql://user:pass@db:3306/school_events?charset=utf8mb4"
     )
 
     # 强烈建议在部署时通过环境变量注入
@@ -99,4 +100,3 @@ def get_config(name: str):
         对应的 Config 类（不是实例），可直接用于 Flask 的 from_object
     """
     return config_map.get(name, DevelopmentConfig)
-
