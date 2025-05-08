@@ -149,6 +149,7 @@ class Event(db.Model):
     min_capacity = db.Column(db.Integer, default=0)
     attendee_count = db.Column(db.Integer, default=0)
     is_successful = db.Column(db.Boolean, default=False)
+    description = db.Column(db.Text)
 
     organizer = db.relationship(
         "Member", backref=db.backref("organized_events", lazy="dynamic")
