@@ -13,6 +13,9 @@ models.py — ORM 模型层
 """
 from app import db
 from sqlalchemy import CheckConstraint, UniqueConstraint, func, PrimaryKeyConstraint
+from sqlalchemy.orm import validates
+from werkzeug.security import generate_password_hash, check_password_hash
+import re
 
 
 # ──────────────────────────────── 基础表 ────────────────────────────────
@@ -79,8 +82,37 @@ class Member(db.Model):
     name = db.Column(db.String(100), nullable=False)
     type_id = db.Column(db.Integer, db.ForeignKey("object_types.id"))
     can_create_event = db.Column(db.Boolean, default=False)
-
+    account        = db.Column(db.String(20), nullable=False, unique=True)
+    password_hash  = db.Column(db.String(128), nullable=False)
     type = db.relationship("ObjectType", backref="members")
+
+    # —— 账号校验：5～20 位，只允许字母/数字/下划线
+    @validates('account')
+    def validate_account(self, key, account):
+        if not re.fullmatch(r'[A-Za-z0-9_]{5,20}', account):
+            raise ValueError("账号必须 5～20 位，只能包含字母、数字、下划线")
+        return account
+
+    # —— 密码设置：8～32 位，必须有大写、小写、数字、特殊符号
+    @property
+    def password(self):
+        raise AttributeError("密码不可读")
+
+    @password.setter
+    def password(self, pwd: str):
+        if not (8 <= len(pwd) <= 32):
+            raise ValueError("密码长度必须在 8～32 位之间")
+        if not re.search(r'[A-Z]', pwd):
+            raise ValueError("密码必须包含至少一位大写字母")
+        if not re.search(r'[a-z]', pwd):
+            raise ValueError("密码必须包含至少一位小写字母")
+        if not re.search(r'\d', pwd):
+            raise ValueError("密码必须包含至少一位数字")
+        # 校验通过后，把明文哈希存到 password_hash
+        self.password_hash = generate_password_hash(pwd)
+
+    def check_password(self, pwd: str) -> bool:
+        return check_password_hash(self.password_hash, pwd)
 
     def __repr__(self):
         return f"<Member {self.name}>"
