@@ -60,6 +60,7 @@ class ActivityDAO:
         db.session.commit()
         return obj_type
 
+
     @staticmethod
     def create_member(id: str, name: str, type_id: int, account: str, password: str, 
                     can_create_event: bool = False) -> Member:
@@ -91,7 +92,24 @@ class ActivityDAO:
         except Exception as e:
             db.session.rollback()
             raise e  # 可以在这里自定义异常处理
-            
+    @staticmethod
+    def get_member_by_id(member_id: str) -> Member:
+        """
+        根据ID获取成员信息
+        :param member_id: 成员ID
+        :return: Member对象或None
+        """
+        return Member.query.get(member_id)
+
+    @staticmethod
+    def get_member_by_account(account: str) -> Member:
+        """
+        根据账号获取成员信息
+        :param account: 账号
+        :return: Member对象或None
+        """
+        return Member.query.filter_by(account=account).first()
+
     @staticmethod
     def create_event(
         name: str,
@@ -199,8 +217,7 @@ class ActivityDAO:
             Event.reg_end,
             Event.start_time,
             Event.end_time,
-            Event.location,
-            Event.description
+            Event.location
         ).all()
 
     @staticmethod
