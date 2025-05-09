@@ -9,6 +9,12 @@ app.app_context().push()  # 手动推送应用上下文
 
 # 确保数据库表已创建
 db.create_all()
+try: 
+    department = ActivityDAO.insert_department(id=101, name="计算机系")
+    role = ActivityDAO.insert_role(id=201,name="学生")
+    object_type = ActivityDAO.insert_object_type(id=1, code="department", ref_id=101)
+except Exception as e:
+    print(f"插入初始表失败: {str(e)}")
 
 # 准备时间数据
 now = datetime.now()
