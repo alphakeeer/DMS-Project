@@ -124,7 +124,7 @@ class AccessToken(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     activation_code = db.Column(db.String(32), unique=True, nullable=False)
     owner_id = db.Column(db.Integer, db.ForeignKey(
-        "members.id"), nullable=False)
+        "members.id"), nullable=True)
 
     owner = db.relationship("Member", backref="access_tokens")
 
