@@ -178,7 +178,6 @@ class EventRegistration(db.Model):
     registered_at = db.Column(
         db.DateTime, nullable=False, server_default=func.current_timestamp()
     )
-    is_cancelled = db.Column(db.Boolean, default=False)
 
     event = db.relationship("Event", backref="registrations")
     registrant = db.relationship("Member", backref="registrations")
