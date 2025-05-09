@@ -328,9 +328,7 @@ class RegistrationDAO:
     @staticmethod
     def cancel_registration(event_id, registrant_id):
         """
-        取消报名（软删除，标记为已取消）
-        :param event_id: 活动ID
-        :param registrant_id: 报名者ID
+        取消报名，直接删除记录
         :return: (success: bool, message: str)
         """
         registration = EventRegistration.query.filter_by(
