@@ -199,7 +199,8 @@ class ActivityDAO:
             Event.reg_end,
             Event.start_time,
             Event.end_time,
-            Event.location
+            Event.location,
+            Event.description
         ).all()
 
     @staticmethod
