@@ -140,6 +140,39 @@ class MemberDAO:
         """
         return Member.query.filter_by(account=account).first()
 
+    @staticmethod
+    def update_password(member_id: str, new_password: str) -> bool:
+        """
+        更新成员密码
+        :param member_id: 成员ID
+        :param new_password: 新密码
+        :return: 成功返回True，失败返回False
+        """
+        try:
+            member = Member.query.get(member_id)
+            member.password = new_password
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            return False
+    
+    @staticmethod
+    def update_can_create_event(member_id: str) -> bool:
+        """
+        更新成员的激活码
+        :param member_id: 成员ID
+        :param activation_code: 激活码
+        :return: 成功返回True，失败返回False
+        """
+        try:
+            member = Member.query.get(member_id)
+            member.can_create_event = True
+            return True
+        except Exception as e:
+            db.session.rollback()
+            return False
+
 class EventDAO:
 
     @staticmethod
