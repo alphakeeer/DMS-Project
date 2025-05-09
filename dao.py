@@ -18,7 +18,7 @@ from datetime import datetime
 
 from werkzeug.security import generate_password_hash
 
-class ActivityDAO:
+class SystemDAO:
     @staticmethod
     def insert_department(id, name):
         """
@@ -59,7 +59,36 @@ class ActivityDAO:
         db.session.add(obj_type)
         db.session.commit()
         return obj_type
+    
+    @staticmethod
+    def check_activate_code(activate_code)-> bool:
+        """
+        检查激活码是否有效
+        :param activate_code: 激活码
+        :return: 激活码有效时返回True，否则False
+        """
+        if not AccessToken.query.get(member_id):
+            return False
+        if AccessToken.query.get(member_id).owner_id != None:
+            return False
+        return True
 
+    @staticmethod
+    def update_access_token(id, activation_code):
+        """
+        更新激活码的拥有者
+        :param id: 成员ID
+        :param activation_code: 激活码
+        :return: 更新后的AccessToken对象
+        """
+        access_token = AccessToken.query.get(activation_code)
+        if access_token:
+            access_token.owner_id = id
+            db.session.commit()
+            return access_token
+        return None
+
+class MemberDAO:
 
     @staticmethod
     def create_member(id: str, name: str, type_id: int, account: str, password: str, 
@@ -92,6 +121,7 @@ class ActivityDAO:
         except Exception as e:
             db.session.rollback()
             raise e  # 可以在这里自定义异常处理
+
     @staticmethod
     def get_member_by_id(member_id: str) -> Member:
         """
@@ -109,6 +139,8 @@ class ActivityDAO:
         :return: Member对象或None
         """
         return Member.query.filter_by(account=account).first()
+
+class EventDAO:
 
     @staticmethod
     def create_event(
@@ -176,12 +208,6 @@ class ActivityDAO:
     def update_event(event_id, column_name, new_value):
       """
       更新Event表的指定列
-      
-      参数:
-          event_id: 要更新的事件ID
-          column_name: 要更新的列名
-          new_value: 新的值
-          
       返回:
           成功返回True，失败返回False
       """
@@ -270,6 +296,8 @@ class ActivityDAO:
             Event.location
         ).all()
 
+class RegistrationDAO:
+
     @staticmethod
     def create_registration(event_id, registrant_id):
         """
@@ -311,13 +339,9 @@ class ActivityDAO:
         ).first()
         
         if not registration:
-            return False, "未找到报名记录"
-        
-        if registration.is_cancelled:
-            return False, "该报名已取消"
-            
+            return False, "未找到报名记录"        
         try:
-            registration.is_cancelled = True
+            db.session.delete(registration)  # 直接删除记录
             db.session.commit()
             return True, "取消报名成功"
         except Exception as e:
