@@ -20,6 +20,47 @@ from werkzeug.security import generate_password_hash
 
 class ActivityDAO:
     @staticmethod
+    def insert_department(id, name):
+        """
+        插入新的部门记录
+        :param name: 部门名称
+        :return: 创建的Department对象
+        """
+        department = Department(id=id, name=name)
+        db.session.add(department)
+        db.session.commit()
+        return department
+
+    @staticmethod
+    def insert_role(id, name):
+        """
+        插入新的角色记录
+        :param name: 角色名称
+        :return: 创建的Role对象
+        """
+        role = Role(id=id, name=name)
+        db.session.add(role)
+        db.session.commit()
+        return role
+
+    @staticmethod
+    def insert_object_type(id, code, ref_id):
+        """
+        插入新的对象类型记录
+        :param code: 对象类型代码 ('department' 或 'role')
+        :param ref_id: 对应的Department或Role的ID
+        :return: 创建的ObjectType对象
+        :raises: ValueError 如果code不是'department'或'role'
+        """
+        if code not in ('department', 'role'):
+            raise ValueError("code must be either 'department' or 'role'")
+        
+        obj_type = ObjectType(id=id, code=code, ref_id=ref_id)
+        db.session.add(obj_type)
+        db.session.commit()
+        return obj_type
+
+    @staticmethod
     def create_member(id: str, name: str, type_id: int, account: str, password: str, 
                     can_create_event: bool = False) -> Member:
         """
