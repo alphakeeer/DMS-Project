@@ -12,8 +12,8 @@ logic.py — 业务逻辑层
   • 不要处理 HTTP 请求/响应细节，只做“给定输入，返回业务结果”
 """
 from models import Department, Role, ObjectType, Member, Event, EventParticipation, AccessToken, EventRegistration, EventAudience
-from dao import SystemDAO, MemberDAO, EventDAO, RegistrationDAO
-from typing import Tuple
+from dao import SystemDAO, MemberDAO, EventDAO, RegistrationDAO, ParticipantDAO
+from typing import Tuple, Optional
 
 class Account_Layer:
     @staticmethod
@@ -189,7 +189,6 @@ class Account_Layer:
             'message': '更新成功'}
 
 class Activity_Management_Layer: 
-from typing import Optional
 
     @staticmethod
     def create_event(
@@ -363,3 +362,166 @@ from typing import Optional
                 
         return True, None
 
+class Registration_Excution_Layer:
+    @staticmethod
+    def register_for_event(event_id, registrant_id):
+        """
+        申请报名活动
+        :param event_id: 活动ID
+        :param registrant_id: 报名者ID
+        :return: (success: bool, message: str)
+        """
+        # 检查是否已经报名
+        existing_registration = RegistrationDAO.get_registration(event_id, registrant_id)
+        if existing_registration:
+            return False, "您已经报名过该活动，无需重复报名"
+        
+        # 调用DAO层创建报名记录
+        success, message = RegistrationDAO.create_registration(event_id, registrant_id)
+        
+        if success:
+            # 这里可以添加其他业务逻辑，例如发送通知等
+            # NotificationService.send_registration_confirmation(registrant_id, event_id)
+            return True, message
+        else:
+            return False, message
+
+    @staticmethod
+    def cancel_registration(event_id, registrant_id):
+        """
+        取消报名活动
+        :param event_id: 活动ID
+        :param registrant_id: 报名者ID
+        :return: (success: bool, message: str)
+        """
+        # 检查是否存在报名记录
+        existing_registration = RegistrationDAO.get_registration(event_id, registrant_id)
+        if not existing_registration:
+            return False, "您尚未报名该活动"
+        
+        # 调用DAO层删除报名记录
+        success, message = RegistrationDAO.delete_registration(event_id, registrant_id)
+        
+        if success:
+            # 这里可以添加其他业务逻辑，例如发送取消确认通知等
+            # NotificationService.send_cancellation_confirmation(registrant_id, event_id)
+            return True, message
+        else:
+            return False, message
+
+    @staticmethod
+    def get_user_registration_status(event_id, registrant_id):
+        """
+        获取用户在某个活动的报名状态
+        :param event_id: 活动ID
+        :param registrant_id: 报名者ID
+        :return: (is_registered: bool, message: str)
+        """
+        event = EventDAO.get_event_by_id(event_id)
+        current_time = datetime.now()
+        
+        # 检查当前时间是否在报名截止时间前
+        if RegistrationDAO.get_registration(event_id, registrant_id):
+            if event and current_time < event.reg_end:
+                return False, "审核中"
+            participation = ParticipationDAO.get_participation(event_id, member_id)
+            if registration:
+                return True, "报名成功"
+            return False, "报名失败"
+        else:
+            return False, "未报名"
+
+    from datetime import datetime
+
+    @staticmethod
+    def close_registration(event):
+        """
+        截止报名并确定参与者
+        1. 获取所有报名者，按报名时间排序
+        2. 选择前event.capacity个报名者作为参与者
+        3. 将参与者信息写入EventParticipation表
+        4. 删除所有报名记录
+        返回：(成功参与者列表, 未成功参与者列表)
+        """
+        # 获取所有报名记录，按报名时间升序排列
+        registrations = RegistrationDAO.get_registrations_by_event(event.id)
+        
+        # 确定成功参与者和未成功参与者
+        successful = []
+        unsuccessful = []
+        
+        for i, registration in enumerate(registrations):
+            if i < event.capacity:
+                # 创建参与记录
+                participation = EventParticipationDAO.create_participation(
+                    event_id=event.id,
+                    member_id=registration.registrant_id,
+                    is_absent=True
+                )
+                successful.append(participation)
+            else:
+                unsuccessful.append(registration.registrant_id)
+    
+        return successful, unsuccessful
+
+    @staticmethod
+    def check_in_participant(event_id, member_id):
+        """
+        参与者签到
+        将is_absent从True(默认值)改为False表示已签到
+        """
+        participation = ParticipationDAO.get_participation(event_id, member_id)
+        
+        if not participation:
+            raise ValueError("该用户没有参与此活动")
+        
+        participationDAO.check_in(event_id, member_id)
+        db.session.commit()
+        return participation
+
+    @staticmethod
+    def batch_check_in(event_id, member_ids):
+        """
+        批量签到多个参与者
+        返回：(成功签到数量, 失败签到数量)
+        """
+        success_count = 0
+        fail_count = 0
+        
+        for member_id in member_ids:
+            try:
+                Registration_Excution_Layer.check_in_participant(event_id, member_id)
+                success_count += 1
+            except ValueError:
+                fail_count += 1
+        
+        return success_count, fail_count
+
+
+    @staticmethod
+    def submit_feedback(event_id, member_id, comment=None):
+        """（参与者）提交活动反馈"""
+        participation = ParticipationDAO.get_participation(event_id, member_id)
+        if not participation:
+            raise ValueError("您没有参与此活动")
+        if participation.is_absent:
+            raise ValueError("您未签到，无法提交反馈")
+        
+        ParticipationDAO.insert_comment(event_id, member_id, comment)
+        return participation
+
+    @staticmethod
+    def submit_rating(event_id, member_id, rating=None):
+        """（组织者）给参与者评分"""
+        participation = ParticipationDAO.get_participation(event_id, member_id)
+        if not participation:
+            raise ValueError("此人并未参与此活动")        
+        ParticipationDAO.insert_rating(event_id, member_id, rating)
+        return participation
+
+    @staticmethod
+    def get_event_feedbacks(event_id):
+        """获取活动的所有反馈"""
+        return EventParticipation.query.filter_by(event_id=event_id)\
+            .options(joinedload(EventParticipation.participant))\
+            .all()
