@@ -15,7 +15,7 @@ from models import Department, Role, ObjectType, Member, Event, EventParticipati
 from dao import SystemDAO, MemberDAO, EventDAO, RegistrationDAO
 from typing import Tuple
 
-class Logic:
+class Account_Layer:
     @staticmethod
     def register_member(
         id: str, 
@@ -23,7 +23,7 @@ class Logic:
         type_id: int, 
         account: str, 
         password: str, 
-        activate_code: str = None
+        activation_code: str = None
     ) -> Tuple[Member, str]:
         """
         用户注册逻辑
@@ -33,7 +33,7 @@ class Logic:
         :param type_id: 用户类型ID
         :param account: 账号
         :param password: 密码
-        :param activate_code: 激活码（可选）
+        :param activation_code: 激活码（可选）
         :return: (注册成功的Member对象, 成功消息)
         :raises: 
             UserIdAlreadyExistsError: 用户ID已存在
@@ -59,7 +59,7 @@ class Logic:
             raise PasswordComplexityError("密码长度至少为8位")    
             
         # 4. 所有检查通过，创建用户
-        member = ActivityDAO.create_member(
+        member = MemberDAO.create_member(
             id=id,
             name=name,
             type_id=type_id,
@@ -70,9 +70,9 @@ class Logic:
         
         #5. 如果有激活码，创建激活码记录
         if activation_code:
-            if ActivityDAO.check_activation_code(activation_code):
-                member.can_create_event = True
-                ActivityDAO.update_access_token(id, activation_code)
+            if SystemDAO.check_activation_code(activation_code):
+                MemberDAO.update_can_create_event(member_id)
+                SystemDAO.update_access_token(id, activation_code)
             else:
                 raise Error("激活码不存在")
         return member, "用户注册成功"
@@ -135,7 +135,7 @@ class Logic:
         }
 
     @staticmethod
-    def update_member_info(member_id: str, new_password: str = None, activate_code: str =None) -> dict:
+    def update_member_info(member_id: str, new_password: str = None, activation_code: str =None) -> dict:
         """
         更新成员信息，只支持修改密码和添加激活码       
         返回:
@@ -166,19 +166,200 @@ class Logic:
                     'message': f'密码更新失败: {str(e)}'}
         
         # 4.  激活码处理
-        if activate_code != None:
+        if activation_code != None:
             if member.can_create_event:
                 return {
                     'success': False,
                     'message': '激活码已存在，不能重复添加'}
-            try:
-                MemberDAO.update_can_create_event(member_id)
-                SystemDAO.update_access_token(member_id, activate_code)
-            except Exception as e:
+            if SystemDAO.check_activation_code(activation_code):
+                try:
+                    MemberDAO.update_can_create_event(member_id)
+                    SystemDAO.update_access_token(id, activation_code)
+                except Exception as e:
+                    return {
+                        'success': False,
+                        'message': f'激活码处理失败: {str(e)}'}
+            else:
                 return {
                     'success': False,
-                    'message': f'激活码处理失败: {str(e)}'}
+                    'message': '激活码不存在'}
         
         return {
             'success': True,
             'message': '更新成功'}
+
+class Activity_Management_Layer: 
+from typing import Optional
+
+    @staticmethod
+    def create_event(
+        name: str,
+        organizer_id: int,
+        event_code: str,
+        reg_start: datetime,
+        reg_end: datetime,
+        start_time: datetime,
+        end_time: datetime,
+        location: Optional[str] = None,
+        max_capacity: Optional[int] = None,
+        min_capacity: int = 0,
+    ) -> Event:
+        """
+        创建新事件
+        
+        参数:
+            name: 事件名称
+            organizer_id: 组织者成员ID
+            event_code: 事件唯一代码
+            reg_start: 注册开始时间
+            reg_end: 注册结束时间
+            start_time: 事件开始时间
+            end_time: 事件结束时间
+            location: 事件地点(可选)
+            max_capacity: 最大容量(可选)
+            min_capacity: 最小容量，默认为0
+        
+        返回:
+            Event: 新创建的事件对象
+            
+        异常:
+            InvalidTimeRangeError: 如果时间范围无效
+            LocationConflictError: 如果场地在该时间段已被占用
+        """
+        # 检查时间有效性
+        if reg_start >= reg_end:
+            raise Error("注册开始时间必须早于注册结束时间")
+            
+        if start_time >= end_time:
+            raise Error("活动开始时间必须早于活动结束时间")
+            
+        if reg_end > start_time:
+            raise Error("注册结束时间不能晚于活动开始时间")
+
+        # 检查容量设置
+        if max_capacity < min_capacity:
+            raise Error("最大容量不能小于最小容量")
+
+        # 如果有地点，检查地点是否被占用
+        if location:
+            conflicting_events = EventDao.get_events_by_location_and_time(
+                location=location,
+                start_time=start_time,
+                end_time=end_time
+            )
+            if conflicting_events:
+                raise Error(f"场地 {location} 在指定时间段已被占用")
+
+        # 创建事件
+        new_event = EventDao.create_event(
+            name=name,
+            organizer_id=organizer_id,
+            id=event_code,
+            reg_start=reg_start,
+            reg_end=reg_end,
+            start_time=start_time,
+            end_time=end_time,
+            location=location,
+            max_capacity=max_capacity,
+            min_capacity=min_capacity,
+            attendee_count=0,  # 新活动初始为0
+            is_successful=False  # 新活动初始为False
+        )
+        
+        return new_event
+
+    @staticmethod
+    def cancel_event(event_id):
+        """
+        删除指定ID的事件
+        返回:
+            bool: 操作是否成功
+            str: 相关消息
+        """
+        # 检查事件是否存在
+        event = EventDAO.get_event_by_id(event_id)
+        if not event:
+            return False, "事件不存在"
+            
+        # 检查事件是否已经开始
+        if event.start_time < datetime.now():
+            return False, "事件已开始，无法取消"
+
+        # 3. 先删除所有报名记录    
+        success, count, msg = RegistrationDAO.delete_registrations_by_event_id(event_id)
+        if not success:
+            return False, 0, f"取消报名记录失败: {msg}"
+        
+        # 4. 再删除活动本身
+        success, msg = EventDAO.delete_event(event)
+        if not success:
+            return False, count, f"取消活动失败: {msg}"
+            
+        return True, count, f"活动取消成功，共删除{count}条报名记录"
+
+    @staticmethod
+    def update_event(event_id: int, update_data: dict) -> Tuple[bool, Optional[str]]:
+        """
+        更新事件信息（包含业务逻辑验证）
+        
+        参数:
+            event_id: 要更新的事件ID
+            update_data: 包含更新字段的字典
+            
+        返回:
+            Tuple[bool, str]: (是否成功, 错误消息)
+        """
+        # 1. 获取现有事件
+        event = EventDAO.get_events_by_id(event_id)
+        if not event:
+            return False, "事件不存在"
+
+        # 2. 验证更新数据
+        if 'reg_start' in update_data or 'reg_end' in update_data:
+            new_reg_start = update_data.get('reg_start', event.reg_start)
+            new_reg_end = update_data.get('reg_end', event.reg_end)
+            if new_reg_start >= new_reg_end:
+                return False, "报名开始时间必须早于结束时间"
+                
+        if 'start_time' in update_data or 'end_time' in update_data:
+            new_start = update_data.get('start_time', event.start_time)
+            new_end = update_data.get('end_time', event.end_time)
+            if new_start >= new_end:
+                return False, "事件开始时间必须早于结束时间"
+                
+            if 'reg_end' in update_data and update_data['reg_end'] > new_start:
+                return False, "报名结束时间不能晚于事件开始时间"
+            elif event.reg_end > new_start:
+                return False, "当前报名结束时间晚于新的事件开始时间"
+
+       # 3. 检查地点时间冲突（如果更新了地点或时间）
+        if 'location' in update_data or 'start_time' in update_data or 'end_time' in update_data:
+            location = update_data.get('location', event.location)
+            start_time = update_data.get('start_time', event.start_time)
+            end_time = update_data.get('end_time', event.end_time)
+            
+            if location:
+                conflicting_events = EventDAO.get_events_by_location_and_time(
+                    location, start_time, end_time
+                )
+                # 排除自身
+                conflicting_events = [e for e in conflicting_events if e.id != event_id]
+                if conflicting_events:
+                    return False, "该地点在指定时间段已被占用"
+
+        # 4. 检查容量设置
+        if 'max_capacity' in update_data or 'min_capacity' in update_data:
+            new_max = update_data.get('max_capacity', event.max_capacity)
+            new_min = update_data.get('min_capacity', event.min_capacity)
+            
+            if new_max is not None and new_min > new_max:
+                return False, "最小容量不能大于最大容量"
+                
+        # 5. 执行更新
+        for column, value in update_data.items():
+            success = EventDAO.update_event(event_id, column, value)
+            if not success:
+                return False, f"更新字段 {column} 失败"
+                
+        return True, None
+
