@@ -129,7 +129,7 @@ class MemberDAO:
                 id=id,
                 name=name,
                 type_id=type_id,
-                can_create_event=can_create_event,
+                can_create_event=False,
                 account=account
             )
             # 设置密码会自动触发密码验证和哈希处理
@@ -259,12 +259,12 @@ class EventDAO:
           return False
 
     @staticmethod
-    def get_events_by_id(id):
+    def get_event_by_id(event_id):
         """根据id查询活动"""
         return Event.query.get(event_id)
 
     @staticmethod
-    def get_events_by_location_and_time(
+    def get_event_by_location_and_time(
         location: str, 
         start_time: datetime, 
         end_time: datetime):
@@ -281,7 +281,7 @@ class EventDAO:
         ).all()
 
     @staticmethod
-    def get_all_events():
+    def get_all_event():
         """获取所有活动的基本信息"""
         return Event.query.with_entities(
             Event.name,
@@ -293,7 +293,7 @@ class EventDAO:
         ).all()
 
     @staticmethod
-    def get_events_by_name(name):
+    def get_event_by_name(name):
         """根据活动名称查询活动"""
         return Event.query.filter(
             Event.name.ilike(f'%{name}%')
@@ -308,7 +308,7 @@ class EventDAO:
 
 
     @staticmethod
-    def get_events_by_time_range(start_date, end_date):
+    def get_event_by_time_range(start_date, end_date):
         """查询在指定时间范围内举办的活动"""
         return Event.query.filter(
             and_(
@@ -325,7 +325,7 @@ class EventDAO:
         ).all()
 
     @staticmethod
-    def get_current_events():
+    def get_current_event():
         """获取当前正在接受报名的活动"""
         now = datetime.now()
         return Event.query.filter(
