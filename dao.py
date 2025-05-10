@@ -61,20 +61,40 @@ class SystemDAO:
         return obj_type
     
     @staticmethod
-    def check_activate_code(activate_code)-> bool:
+    def check_activation_code(activation_code) -> bool:
         """
         检查激活码是否有效
-        :param activate_code: 激活码
+        :param activation_code: 激活码
         :return: 激活码有效时返回True，否则False
         """
-        if not AccessToken.query.get(member_id):
+        # Query the activation code from database
+        token = AccessToken.query.get(activation_code)
+        
+        # If not found or has an owner, return False
+        if not token or token.owner_id is not None:
             return False
-        if AccessToken.query.get(member_id).owner_id != None:
-            return False
+        
         return True
 
     @staticmethod
-    def update_access_token(id, activation_code):
+    def create_access_token(activation_code: str) -> AccessToken:
+        """
+        创建只有activation_code的AccessToken记录
+        :param activation_code: 激活码字符串
+        :return: 创建的AccessToken对象
+        """
+        try:
+            # 创建新记录
+            new_token = AccessToken(activation_code=activation_code)
+            db.session.add(new_token)
+            db.session.commit()            
+            return new_token
+        except Exception as e:
+            db.session.rollback()
+            raise e  # 可以选择处理或重新抛出异常
+
+    @staticmethod
+    def update_access_token(owner_id: int, activation_code: str) -> AccessToken:
         """
         更新激活码的拥有者
         :param id: 成员ID
@@ -83,7 +103,7 @@ class SystemDAO:
         """
         access_token = AccessToken.query.get(activation_code)
         if access_token:
-            access_token.owner_id = id
+            access_token.owner_id = owner_id
             db.session.commit()
             return access_token
         return None
@@ -124,20 +144,12 @@ class MemberDAO:
 
     @staticmethod
     def get_member_by_id(member_id: str) -> Member:
-        """
-        根据ID获取成员信息
-        :param member_id: 成员ID
-        :return: Member对象或None
-        """
+        #根据ID获取成员信息
         return Member.query.get(member_id)
 
     @staticmethod
     def get_member_by_account(account: str) -> Member:
-        """
-        根据账号获取成员信息
-        :param account: 账号
-        :return: Member对象或None
-        """
+        #根据账号获取成员信息
         return Member.query.filter_by(account=account).first()
 
     @staticmethod
@@ -179,7 +191,6 @@ class EventDAO:
     def create_event(
         name: str,
         organizer_id: int,
-        id: str,
         reg_start: datetime,
         reg_end: datetime,
         start_time: datetime,
@@ -191,33 +202,14 @@ class EventDAO:
         is_successful: bool = False
     ) -> Event:
         """
-        创建新事件并插入到数据库
-        
-        参数:
-            name: 事件名称
-            organizer_id: 组织者成员ID
-            event_code: 事件唯一代码
-            reg_start: 注册开始时间
-            reg_end: 注册结束时间
-            start_time: 事件开始时间
-            end_time: 事件结束时间
-            location: 事件地点(可选)
-            max_capacity: 最大容量(可选)
-            min_capacity: 最小容量，默认为0
-            attendee_count: 参加人数，默认为0
-            is_successful: 是否成功举办，默认为False
-        
+        创建新事件并插入到数据库        
         返回:
             Event: 新创建的事件对象
-        
-        异常:
-            可能抛出 IntegrityError(当event_code不唯一时)或其他数据库异常
         """
         try:
             new_event = Event(
                 name=name,
                 organizer_id=organizer_id,
-                id=id,
                 reg_start=reg_start,
                 reg_end=reg_end,
                 start_time=start_time,
@@ -241,8 +233,7 @@ class EventDAO:
     def update_event(event_id, column_name, new_value):
       """
       更新Event表的指定列
-      返回:
-          成功返回True，失败返回False
+      返回: 成功返回True，失败返回False
       """
       
       try:
@@ -266,6 +257,28 @@ class EventDAO:
           db.session.rollback()
           print(f"Error updating event: {e}")
           return False
+
+    @staticmethod
+    def get_events_by_id(id):
+        """根据id查询活动"""
+        return Event.query.get(event_id)
+
+    @staticmethod
+    def get_events_by_location_and_time(
+        location: str, 
+        start_time: datetime, 
+        end_time: datetime):
+        """
+        获取在指定时间段内占用指定地点的事件列表
+        返回:
+            List[Event]: 符合条件的事件列表，如果没有则返回空列表
+        """
+        return Event.query.filter(
+            Event.location == location,
+            # 检查时间重叠的条件
+            Event.start_time < end_time,
+            Event.end_time > start_time
+        ).all()
 
     @staticmethod
     def get_all_events():
@@ -329,6 +342,26 @@ class EventDAO:
             Event.location
         ).all()
 
+    @staticmethod
+    def delete_event(event_id):
+        """
+        取消/删除指定ID的事件
+        返回:
+            bool: 操作是否成功
+            str: 相关消息
+        """
+        try:
+            # 查找事件
+            event = Event.query.get(event_id)
+            # 删除事件
+            db.session.delete(event)
+            db.session.commit()            
+            return True, "事件取消成功"
+            
+        except Exception as e:
+            db.session.rollback()
+            return False, f"取消事件时出错: {str(e)}"
+
 class RegistrationDAO:
 
     @staticmethod
@@ -359,18 +392,15 @@ class RegistrationDAO:
             return False, f"报名失败: {str(e)}"
 
     @staticmethod
-    def cancel_registration(event_id, registrant_id):
+    def delete_registration(event_id, registrant_id):
         """
-        取消报名，直接删除记录
+        （参与者自己）取消报名，直接删除记录
         :return: (success: bool, message: str)
         """
         registration = EventRegistration.query.filter_by(
             event_id=event_id,
             registrant_id=registrant_id
-        ).first()
-        
-        if not registration:
-            return False, "未找到报名记录"        
+        ).first()       
         try:
             db.session.delete(registration)  # 直接删除记录
             db.session.commit()
@@ -378,6 +408,24 @@ class RegistrationDAO:
         except Exception as e:
             db.session.rollback()
             return False, f"取消报名失败: {str(e)}"
+
+    @staticmethod
+    def delete_registrations_by_event(event_id):
+        """
+        （在删除活动时）删除指定活动的所有报名记录
+        :param event_id: 活动ID
+        :return: (success: bool, deleted_count: int, message: str)
+        """
+        try:
+            # 使用批量删除提高效率
+            deleted_count = EventRegistration.query.filter_by(
+                event_id=event_id
+            ).delete()
+            db.session.commit()
+            return True, deleted_count, f"成功删除{deleted_count}条报名记录"
+        except Exception as e:
+            db.session.rollback()
+            return False, 0, f"删除报名记录失败: {str(e)}"
 
     @staticmethod
     def get_registration(event_id, registrant_id):
@@ -392,28 +440,87 @@ class RegistrationDAO:
         ).first()
 
     @staticmethod
-    def get_event_registrations(event_id, include_cancelled=False):
-        """
-        活动组织者可查询
-        获取活动的所有报名记录
-        :param event_id: 活动ID
-        :param include_cancelled: 是否包含已取消的报名
-        :return: 报名记录列表
-        """
-        query = EventRegistration.query.filter_by(event_id=event_id)
-        if not include_cancelled:
-            query = query.filter_by(is_cancelled=False)
-        return query.all()
+    def get_registrations_by_event(event_id):
+        """组织者查询，获取某个活动的所有报名记录，按报名时间升序排列"""
+        return EventRegistration.query.filter_by(event_id=event_id)\
+            .order_by(EventRegistration.registered_at.asc())\
+            .all()
 
     @staticmethod
-    def count_event_registrations(event_id, include_cancelled=False):
+    def count_event_registrations(event_id):
         """
         统计活动的报名人数
         :param event_id: 活动ID
-        :param include_cancelled: 是否包含已取消的报名
         :return: 报名人数
         """
         query = EventRegistration.query.filter_by(event_id=event_id)
-        if not include_cancelled:
-            query = query.filter_by(is_cancelled=False)
         return query.count()
+
+class ParticipationDAO:
+    @staticmethod
+    def create_participation(event_id, member_id, is_absent=False):
+        """创建参与记录"""
+        participation = EventParticipation(
+            event_id=event_id,
+            participant_id=member_id,
+            is_absent=is_absent
+        )
+        db.session.add(participation)
+        db.session.commit()
+        return participation
+
+    @staticmethod
+    def get_participation(event_id, member_id):
+        """获取特定用户对特定活动的参与记录"""
+        return EventParticipation.query.filter_by(
+            event_id=event_id, 
+            participant_id=member_id
+        ).first()
+
+    @staticmethod
+    def count_participations(event_id):
+        """统计某个活动的参与人数"""
+        return EventParticipation.query.filter_by(event_id=event_id)\
+            .filter_by(is_absent=False)\
+            .count()
+
+    @staticmethod
+    def check_in(event_id, member_id):
+        participation = EventParticipation.query.filter_by(
+            event_id=event_id, 
+            participant_id=member_id
+        ).first()
+        participation.is_absent = False
+        return participation
+    
+    @staticmethod
+    def get_checked_in_participants(event_id):
+        """
+        获取已签到的参与者列表
+        """
+        return EventParticipation.query.filter_by(
+            event_id=event_id,
+            is_absent=False
+        ).options(joinedload(EventParticipation.participant)).all()
+
+    @staticmethod
+    def insert_comment(event_id, member_id, comment=None):
+        participation = EventParticipation.query.filter_by(
+            event_id=event_id, 
+            participant_id=member_id
+        ).first()
+        if comment is not None:
+            participation.comment = comment
+        db.session.commit()
+        return True
+    
+    @staticmethod
+    def insert_rating(event_id, member_id, rating=None):
+        participation = EventParticipation.query.filter_by(
+            event_id=event_id, 
+            participant_id=member_id
+        ).first()
+        if rating is not None:
+            participation.rating = rating
+        db.session.commit()
+        return True
