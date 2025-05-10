@@ -12,8 +12,9 @@ logic.py — 业务逻辑层
   • 不要处理 HTTP 请求/响应细节，只做“给定输入，返回业务结果”
 """
 from models import Department, Role, ObjectType, Member, Event, EventParticipation, AccessToken, EventRegistration, EventAudience
-from dao import SystemDAO, MemberDAO, EventDAO, RegistrationDAO, ParticipantDAO
+from dao import SystemDAO, MemberDAO, EventDAO, RegistrationDAO, ParticipationDAO
 from typing import Tuple, Optional
+from datetime import datetime
 
 class Account_Layer:
     @staticmethod
@@ -41,22 +42,22 @@ class Account_Layer:
             PasswordComplexityError: 密码不符合复杂度要求
         """
         # 1. 检查用户ID是否已存在
-        if MemberDao.get_member_by_id(id):
-            raise UserIdAlreadyExistsError(f"用户ID {id} 已存在")
+        if MemberDAO.get_member_by_id(id):
+            raise Error(f"用户ID {id} 已存在")
             
         # 2. 检查账号是否已存在
-        if MemberDao.get_member_by_account(account):
+        if MemberDAO.get_member_by_account(account):
             raise AccountAlreadyExistsError(f"账号 {account} 已被注册")
             
         # 3. 验证密码复杂度
         if not any(c.isupper() for c in password):
-            raise PasswordComplexityError("密码必须包含至少一个大写字母")
+            raise Error("密码必须包含至少一个大写字母")
         if not any(c.islower() for c in password):
-            raise PasswordComplexityError("密码必须包含至少一个小写字母")
+            raise Error("密码必须包含至少一个小写字母")
         if not any(c.isdigit() for c in password):
-            raise PasswordComplexityError("密码必须包含至少一个数字")
+            raise Error("密码必须包含至少一个数字")
         if len(password) < 8: 
-            raise PasswordComplexityError("密码长度至少为8位")    
+            raise Error("密码长度至少为8位")    
             
         # 4. 所有检查通过，创建用户
         member = MemberDAO.create_member(
@@ -64,8 +65,7 @@ class Account_Layer:
             name=name,
             type_id=type_id,
             account=account,
-            password=password,
-            can_create_event=can_create_event
+            password=password
         )
         
         #5. 如果有激活码，创建激活码记录
@@ -241,16 +241,16 @@ class Activity_Management_Layer:
 
         # 如果有地点，检查地点是否被占用
         if location:
-            conflicting_events = EventDao.get_events_by_location_and_time(
+            conflicting_event = EventDAO.get_event_by_location_and_time(
                 location=location,
                 start_time=start_time,
                 end_time=end_time
             )
-            if conflicting_events:
+            if conflicting_event:
                 raise Error(f"场地 {location} 在指定时间段已被占用")
 
         # 创建事件
-        new_event = EventDao.create_event(
+        new_event = EventDAO.create_event(
             name=name,
             organizer_id=organizer_id,
             id=event_code,
@@ -285,16 +285,16 @@ class Activity_Management_Layer:
             return False, "事件已开始，无法取消"
 
         # 3. 先删除所有报名记录    
-        success, count, msg = RegistrationDAO.delete_registrations_by_event_id(event_id)
+        success, count, msg = RegistrationDAO.delete_registrations_by_event(event_id)
         if not success:
-            return False, 0, f"取消报名记录失败: {msg}"
+            return False, f"取消报名记录失败: {msg}"
         
         # 4. 再删除活动本身
         success, msg = EventDAO.delete_event(event)
         if not success:
-            return False, count, f"取消活动失败: {msg}"
+            return False, f"取消活动失败: {msg}"
             
-        return True, count, f"活动取消成功，共删除{count}条报名记录"
+        return True, f"活动取消成功，共删除{count}条报名记录"
 
     @staticmethod
     def update_event(event_id: int, update_data: dict) -> Tuple[bool, Optional[str]]:
@@ -309,7 +309,7 @@ class Activity_Management_Layer:
             Tuple[bool, str]: (是否成功, 错误消息)
         """
         # 1. 获取现有事件
-        event = EventDAO.get_events_by_id(event_id)
+        event = EventDAO.get_event_by_id(event_id)
         if not event:
             return False, "事件不存在"
 
@@ -338,12 +338,12 @@ class Activity_Management_Layer:
             end_time = update_data.get('end_time', event.end_time)
             
             if location:
-                conflicting_events = EventDAO.get_events_by_location_and_time(
+                conflicting_event = EventDAO.get_event_by_location_and_time(
                     location, start_time, end_time
                 )
                 # 排除自身
-                conflicting_events = [e for e in conflicting_events if e.id != event_id]
-                if conflicting_events:
+                conflicting_event = [e for e in conflicting_event if e.id != event_id]
+                if conflicting_event:
                     return False, "该地点在指定时间段已被占用"
 
         # 4. 检查容量设置
@@ -453,7 +453,7 @@ class Registration_Excution_Layer:
         for i, registration in enumerate(registrations):
             if i < event.capacity:
                 # 创建参与记录
-                participation = EventParticipationDAO.create_participation(
+                participation = ParticipationDAO.create_participation(
                     event_id=event.id,
                     member_id=registration.registrant_id,
                     is_absent=True
@@ -475,7 +475,7 @@ class Registration_Excution_Layer:
         if not participation:
             raise ValueError("该用户没有参与此活动")
         
-        participationDAO.check_in(event_id, member_id)
+        ParticipationDAO.check_in(event_id, member_id)
         db.session.commit()
         return participation
 
