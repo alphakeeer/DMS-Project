@@ -1,0 +1,60 @@
+
+// 全局布局
+.app-layout {
+    min-height: 100vh;
+    
+    .content-container {
+      min-height: calc(100vh - 134px);
+      padding: 24px;
+      background: #fff;
+    }
+  }
+  
+  // 头部样式
+  .app-header {
+    position: fixed;
+    z-index: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    background: #001529;
+    color: white;
+  
+    .logo {
+      font-size: 1.5em;
+      margin-right: 48px;
+    }
+  
+    .user-panel {
+      margin-left: auto;
+      
+      .user-info {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        transition: background 0.3s;
+  
+        &:hover {
+          background: rgba(255,255,255,0.1);
+        }
+      }
+    }
+  }
+  
+  // 活动卡片
+  .event-card {
+    transition: transform 0.2s;
+    
+    &:hover {
+      transform: translateY(-5px);
+    }
+  }
+  
+  // 数据看板
+  .dashboard {
+    .ant-card {
+      margin-bottom: 24px;
+    }
+  }
