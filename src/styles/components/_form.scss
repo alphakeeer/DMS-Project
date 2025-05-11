@@ -1,0 +1,31 @@
+.create-form {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px;
+  
+    .submit-btn {
+      width: 200px;
+      height: 45px;
+      font-size: 16px;
+    }
+  
+    .ant-upload-select-picture-card {
+      width: 150px;
+      height: 150px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+  }
+  
+  .loading-overlay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+  }
+  
+  .app-footer {
+    text-align: center;
+    background: #f0f2f5;
+    padding: 24px 50px;
+  }
