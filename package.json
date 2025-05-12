@@ -1,0 +1,31 @@
+{
+  "name": "my-frontend-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/antd": "^0.12.32",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^6.0.0",
+    "@ant-design/plots": "^2.3.3",
+    "antd": "^5.25.1",
+    "axios": "^1.9.0",
+    "dayjs": "^1.11.13",
+    "pro-components": "github:ant-design/pro-components",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.30.0",
+    "zustand": "^5.0.4"
+  }
+}
