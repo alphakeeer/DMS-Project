@@ -50,14 +50,14 @@ class Account_Layer:
             raise AccountAlreadyExistsError(f"账号 {account} 已被注册")
             
         # 3. 验证密码复杂度
+        if len(password) < 8:
+            raise ValueError("密码长度至少为8位")
         if not any(c.isupper() for c in password):
-            raise Error("密码必须包含至少一个大写字母")
+            raise ValueError("密码必须包含至少一个大写字母")
         if not any(c.islower() for c in password):
-            raise Error("密码必须包含至少一个小写字母")
+            raise ValueError("密码必须包含至少一个小写字母")
         if not any(c.isdigit() for c in password):
-            raise Error("密码必须包含至少一个数字")
-        if len(password) < 8: 
-            raise Error("密码长度至少为8位")    
+            raise ValueError("密码必须包含至少一个数字")     
             
         # 4. 所有检查通过，创建用户
         member = MemberDAO.create_member(
@@ -200,7 +200,7 @@ class Activity_Management_Layer:
         start_time: datetime,
         end_time: datetime,
         location: Optional[str] = None,
-        max_capacity: Optional[int] = None,
+        max_capacity: Optional[int] = 500,
         min_capacity: int = 0,
     ) -> Event:
         """
