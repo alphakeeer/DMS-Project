@@ -274,7 +274,7 @@ class TestActivityManagementLayer:
         """测试取消不存在的活动"""
         mock_get_event.return_value = None
         
-        success, count, msg = Activity_Management_Layer.cancel_event(TEST_EVENT_ID)
+        success, msg = Activity_Management_Layer.cancel_event(TEST_EVENT_ID)
         assert success is False
         assert "事件不存在" in msg
         
@@ -285,7 +285,7 @@ class TestActivityManagementLayer:
         mock_event.start_time = now - timedelta(hours=1)  # 过去时间
         mock_get_event.return_value = mock_event
         
-        success, count, msg = Activity_Management_Layer.cancel_event(TEST_EVENT_ID)
+        success, msg = Activity_Management_Layer.cancel_event(TEST_EVENT_ID)
         assert success is False
         assert "已开始" in msg
 
@@ -353,7 +353,7 @@ class TestRegistrationExecutionLayer:
         mock_get_part.return_value = MagicMock()
         is_reg, msg = Registration_Excution_Layer.get_user_registration_status(TEST_EVENT_ID, TEST_MEMBER_ID)
         assert is_reg is True
-        assert "成功" in msg
+        assert "报名成功" in msg
         
         # 测试未报名状态
         mock_get_reg.return_value = None
@@ -362,7 +362,7 @@ class TestRegistrationExecutionLayer:
         assert "未报名" in msg
         
     @patch('logic.RegistrationDAO.get_registrations_by_event')
-    @patch('logic.EventParticipationDAO.create_participation')
+    @patch('logic.ParticipationDAO.create_participation')
     def test_close_registration(self, mock_create, mock_get_regs):
         """测试关闭报名并确定参与者"""
         # 准备模拟数据
