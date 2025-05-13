@@ -16,6 +16,7 @@ cli.py — 命令行工具集
 import click
 from flask.cli import with_appcontext
 from sqlalchemy import text, inspect
+from populate_db import gen_data
 
 from app import create_app, db
 from models import Member
@@ -58,3 +59,11 @@ def reset_db():
     click.echo('>>> 正在重新创建表 …')
     db.create_all()     # 根据 models 再次创建表
     click.echo('>>> 表已重置完成')
+    
+@app.cli.command('gen-fake-data')
+@with_appcontext
+def gen_fake_data():
+    """生成假数据"""
+    click.echo(f'>>> 正在生成假数据 …')
+    gen_data()
+    click.echo('>>> 假数据生成完毕')
