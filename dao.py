@@ -20,25 +20,25 @@ from werkzeug.security import generate_password_hash
 
 class SystemDAO:
     @staticmethod
-    def insert_department(id, name):
+    def insert_department(name):
         """
         插入新的部门记录
         :param name: 部门名称
         :return: 创建的Department对象
         """
-        department = Department(id=id, name=name)
+        department = Department(name=name)
         db.session.add(department)
         db.session.commit()
         return department
 
     @staticmethod
-    def insert_role(id, name):
+    def insert_role(name):
         """
         插入新的角色记录
         :param name: 角色名称
         :return: 创建的Role对象
         """
-        role = Role(id=id, name=name)
+        role = Role(name=name)
         db.session.add(role)
         db.session.commit()
         return role
