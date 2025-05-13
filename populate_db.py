@@ -36,12 +36,22 @@ def gen_object_types(deps, roles):
     db.session.commit()
     return ots
 
+#################################
+
 def gen_members(ots, count=50):
+    import re  # 添加正则表达式模块
     members = []
     for _ in range(count):
+        raw_account = fake.unique.user_name()
+        # 清除非字母、数字、下划线的字符
+        valid_account = re.sub(r'\W', '', raw_account)
+        # 如果长度不足5，则补充
+        if len(valid_account) < 5:
+            valid_account += "user"
+        valid_account = valid_account[:20]  # 保证不超过20位
         m = Member(
             name=fake.name(),
-            account=fake.unique.user_name()[:20],
+            account=valid_account,
             can_create_event=fake.boolean(chance_of_getting_true=30),
             type_id=random.choice(ots).id
         )
@@ -61,7 +71,7 @@ def gen_access_tokens(members):
     for m in members:
         tokens.append(AccessToken(
             activation_code=fake.uuid4().replace('-', '')[:32],
-            owner_id=m.id
+            owner_id=m.id if m.can_create_event else None
         ))
     db.session.add_all(tokens)
     db.session.commit()
@@ -101,39 +111,41 @@ def gen_registrations(events, members):
         # 至少 min_capacity 人报名，最多 cap 人
         num = random.randint(e.min_capacity, cap)
         regs_for_e = random.sample(members, num)
+        # 计算 e.reg_start 与 e.reg_end 之间的总秒数差
+        seconds_diff = int((e.reg_end - e.reg_start).total_seconds())
         for m in regs_for_e:
+            reg_time = e.reg_start + timedelta(seconds=random.randint(0, seconds_diff))
             regs.append(EventRegistration(
                 event_id=e.id,
-                registrant_id=m.id
+                registrant_id=m.id,
+                registered_at=reg_time
             ))
-        # 更新 attendee_count
-        e.attendee_count = len(regs_for_e)
     db.session.add_all(regs)
     db.session.commit()
     return regs
 
-def gen_participations(regs):
-    parts = []
-    for r in regs:
-        absent = fake.boolean(chance_of_getting_true=20)
-        if absent:
-            p = EventParticipation(
-                event_id=r.event_id,
-                participant_id=r.registrant_id,
-                is_absent=True
-            )
-        else:
-            p = EventParticipation(
-                event_id=r.event_id,
-                participant_id=r.registrant_id,
-                rating=random.randint(0, 10),
-                comment=fake.sentence(),
-                is_absent=False
-            )
-        parts.append(p)
-    db.session.add_all(parts)
-    db.session.commit()
-    return parts
+# def gen_participations(regs):
+#     parts = []
+#     for r in regs:
+#         absent = fake.boolean(chance_of_getting_true=20)
+#         if absent:
+#             p = EventParticipation(
+#                 event_id=r.event_id,
+#                 participant_id=r.registrant_id,
+#                 is_absent=True
+#             )
+#         else:
+#             p = EventParticipation(
+#                 event_id=r.event_id,
+#                 participant_id=r.registrant_id,
+#                 rating=random.randint(0, 10),
+#                 comment=fake.sentence(),
+#                 is_absent=False
+#             )
+#         parts.append(p)
+#     db.session.add_all(parts)
+#     db.session.commit()
+#     return parts
 
 def gen_audiences(events, deps, roles):
     auds = []
@@ -151,7 +163,7 @@ def gen_audiences(events, deps, roles):
     db.session.commit()
     return auds
 
-def main():
+def gen_data():
     deps   = gen_departments()
     roles  = gen_roles()
     ots    = gen_object_types(deps, roles)
@@ -159,9 +171,6 @@ def main():
     toks   = gen_access_tokens(mems)
     evs    = gen_events(mems)
     regs   = gen_registrations(evs, mems)
-    parts  = gen_participations(regs)
+    # parts  = gen_participations(regs)
     auds   = gen_audiences(evs, deps, roles)
     print("数据生成完毕！")
-
-if __name__ == "__main__":
-    main()
