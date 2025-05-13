@@ -83,7 +83,7 @@ class Member(db.Model):
     type_id = db.Column(db.Integer, db.ForeignKey("object_types.id"))
     can_create_event = db.Column(db.Boolean, default=False)
     account        = db.Column(db.String(20), nullable=False, unique=True)
-    password_hash  = db.Column(db.String(128), nullable=False)
+    password_hash  = db.Column(db.String(512), nullable=False)
     type = db.relationship("ObjectType", backref="members")
 
     # —— 账号校验：5～20 位，只允许字母/数字/下划线
