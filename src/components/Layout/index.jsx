@@ -70,14 +70,14 @@ export default function AppLayout() {
   return (
     <Layout className="app-layout">
       <Header />
-      <Content style={{ padding: '0 50px', marginTop: 64 }}>
+      <Content style={{ padding: '0', marginTop: 0 }}>
         <div className="content-container">
           <Outlet />
         </div>
       </Content>
-      <Footer style={{ textAlign: 'center' }}>
-        活动管理系统 ©{new Date().getFullYear()} Created by Your Team
-      </Footer>
+      {/* <Footer style={{ textAlign: 'center' }}>
+        活动管理系统 ©{new Date().getFullYear()} Created by DBMS Team
+      </Footer> */}
     </Layout>
   )
 }

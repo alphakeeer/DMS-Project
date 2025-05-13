@@ -1,0 +1,25 @@
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px;
+  
+    .event-item {
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      
+      h4 {
+        margin-bottom: 8px;
+        color: #1890ff;
+      }
+  
+      .event-actions {
+        margin-top: 12px;
+      }
+    }
+  
+    .ant-timeline-item-head {
+      background: transparent;
+    }
+  }

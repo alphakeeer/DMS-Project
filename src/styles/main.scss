@@ -1,3 +1,55 @@
+// // 覆盖Ant Design变量
+// @import 'antd/dist/reset.css';
+
+// :root {
+//   --primary-color: #1890ff;
+// }
+
+// .page-container {
+//   max-width: 1200px;
+//   margin: 0 auto;
+//   padding: 24px;
+// }
+
+// // 自定义卡片样式
+// .custom-card {
+//   transition: box-shadow 0.3s;
+  
+//   &:hover {
+//     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+//   }
+// }
+
+
+
+
+// // 覆盖Ant Design主题
+// @import 'antd/dist/reset.css';
+
+// .app-layout {
+//   min-height: 100vh;
+  
+//   .site-layout-content {
+//     background: #fff;
+//     padding: 24px;
+//     min-height: 280px;
+//   }
+// }
+
+// .form-container {
+//   max-width: 800px;
+//   margin: 0 auto;
+//   padding: 24px;
+// }
+
+// .detail-container {
+//   max-width: 1200px;
+//   margin: 0 auto;
+//   padding: 24px;
+// }
+
+
+
 
 // 全局布局
 .app-layout {
@@ -57,4 +109,6 @@
     .ant-card {
       margin-bottom: 24px;
     }
-  }
+  } 
+
+  

@@ -1,0 +1,6 @@
+// db.json
+{
+    "activation-codes": [
+      { "code": "ORG2023", "valid": true }
+    ]
+  }

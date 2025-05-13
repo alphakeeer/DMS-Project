@@ -1,0 +1,62 @@
+// /* src/styles/global.scss */
+
+// // 重置默认样式
+// body {
+//     margin: 0;
+//     padding: 0;
+//     box-sizing: border-box;
+  
+//     // 修复 Ant Design 侧边栏滚动条问题
+//     &::-webkit-scrollbar {
+//       width: 6px;
+//     }
+  
+//     &::-webkit-scrollbar-thumb {
+//       background: rgba(0, 0, 0, 0.2);
+//       border-radius: 3px;
+//     }
+//   }
+  
+//   // 根容器适配
+//   #root {
+//     height: 100vh;
+//     overflow: hidden;
+//     position: relative;
+//   }
+  
+//   // 侧边栏覆盖层优化（可选）
+//   .ant-layout-sider {
+//     z-index: 1000 !important; // 确保侧边栏始终在顶部
+//   }
+
+
+/* src/styles/global.scss */
+
+// 重置默认样式
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    // 修复 Ant Design 侧边栏滚动条问题
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+    }
+}
+
+// 根容器适配
+#root {
+    height: 100vh;
+    overflow: auto; // 修改为 auto
+    position: relative;
+}
+
+// 侧边栏覆盖层优化（可选）
+.ant-layout-sider {
+    z-index: 1000 !important; // 确保侧边栏始终在顶部
+}
