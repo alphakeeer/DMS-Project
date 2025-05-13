@@ -86,12 +86,12 @@ class Member(db.Model):
     password_hash  = db.Column(db.String(128), nullable=False)
     type = db.relationship("ObjectType", backref="members")
 
-    # —— 账号校验：5～20 位，只允许字母/数字/下划线
-    @validates('account')
-    def validate_account(self, key, account):
-        if not re.fullmatch(r'[A-Za-z0-9_]{5,20}', account):
-            raise ValueError("账号必须 5～20 位，只能包含字母、数字、下划线")
-        return account
+    # —— 账号校验：检查邮箱格式
+    @validates('email')
+    def validate_email(self, key, email):
+        if not re.fullmatch(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            raise ValueError("请输入有效的邮箱地址，例如：username@example.com")
+        return email
 
     # —— 密码设置：8～32 位，必须有大写、小写、数字、特殊符号
     @property
