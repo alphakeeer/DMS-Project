@@ -342,6 +342,250 @@
 // }
 
 
+
+// //OKOKOKOKOK??
+// import { useParams, Link, useNavigate } from 'react-router-dom';
+// import { Card, Tag, Space, Typography, Button, Modal, message, Alert, Spin } from 'antd';
+// import dayjs from 'dayjs';
+// import { useState, useEffect } from 'react';
+// import { useAuthStore } from '@/stores/authStore';
+// import { useEventStore } from '@/stores/eventStore';
+
+// const { Title, Text } = Typography;
+
+// // 与HomePage共享的模拟数据
+// export const mockEvents = [
+//       {
+//           id: 'example-id1',
+//           title: '校园开放日',
+//           description: '欢迎新生参观校园',
+//           startTime: '2025-10-01T10:00:00',
+//           endTime: '2025-10-01T12:00:00',
+//           registerstartTime: '2025-09-01T10:00:00',
+//           registerendTime: '2025-09-30T12:00:00',
+//           location: '学校主广场',
+//           status: 'published',
+//           capacity: 100,
+//           department: 'UG',
+//           role: 'student'
+//          
+//         },
+//         {
+//           id: 'example-id2',
+//           title: '编程工作坊',
+//           description: '学习基础编程技能',
+//           startTime: '2025-10-02T14:00:00',
+//           endTime: '2025-10-02T16:00:00',
+//           registerstartTime: '2025-09-15T10:00:00',
+//           registerendTime: '2025-10-01T12:00:00',
+//           location: '计算机实验室',
+//           status: 'published',
+//           capacity: 30,
+//           department: 'CS',
+//           role: 'student'
+//           
+//         },
+//         {
+//           id: 'example-id3',
+//           title: '艺术展览',
+//           description: '学生艺术作品展示',
+//           startTime: '2025-10-03T09:00:00',
+//           endTime: '2025-10-05T17:00:00',
+//           registerstartTime: '2025-09-10T10:00:00',
+//           registerendTime: '2025-10-02T12:00:00',
+//           location: '艺术楼展厅',
+//           status: 'published',
+//           capacity: 200,
+//           department: 'ART',
+//           role: 'student',
+//           coverImage: 'https://example.com/art-exhibition.jpg',
+//           
+//         }
+//   // 其他活动数据保持与HomePage一致...
+
+// ];
+
+// export default function EventDetailPage() {
+
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+//   // const { user, isLoggedIn, registeredEvents, registerEvent } = useAuthStore();
+//   const { user, isLoggedIn, registeredEvents = [], registerEvent } = useAuthStore(); // 添加
+//   const { events } = useEventStore();
+//   const [currentEvent, setCurrentEvent] = useState(null);
+//   const [isModalVisible, setIsModalVisible] = useState(false);
+//   const [isLoading, setIsLoading] = useState(true);
+//   // 初始化加载事件数据
+//   useEffect(() => {
+//     const combinedEvents = [...events, ...mockEvents];
+//     const event = combinedEvents.find(e => e.id === id);
+//     setCurrentEvent(event || null);
+//     setIsLoading(false); // 正确设置加载状态
+//   }, [id, events]);
+
+
+//   if (isLoading) {
+//     return <Spin tip="加载中..." />;
+//   }
+//   // ...其他代码
+
+
+//   // 实时状态计算
+//   // const isRegistered = registeredEvents.includes(id);
+//   const isRegistered = (registeredEvents || []).includes(id);
+//   const remainingSpots = currentEvent?.capacity - currentEvent?.participants?.length || 0;
+//   const isRegistrationClosed = currentEvent 
+//     ? dayjs().isAfter(dayjs(currentEvent.registerendTime))
+//     : true;
+
+//     const handleRegister = async () => {
+//       // 增强状态检查
+//       const authState = useAuthStore.getState();
+      
+//       if (!authState.isLoggedIn || !authState.user) {
+//         message.warning('请先登录！');
+//         navigate('/login', { state: { from: location.pathname } }); // 保留当前路径
+//         return;
+//       }
+    
+//       if (remainingSpots <= 0) {
+//         message.error('该活动已满员');
+//         return;
+//       }
+    
+//       setIsModalVisible(true);
+//     };
+
+//   const confirmRegistration = async () => {
+//     try {
+//       // 更新全局状态
+//       registerEvent(id);
+      
+//       // 更新本地事件数据
+//       setCurrentEvent(prev => ({
+//         ...prev,
+//         participants: [...prev.participants, user.id],
+//         registered: prev.registered + 1
+//       }));
+
+//     // 同时更新两个store
+//     await Promise.all([
+//       useAuthStore.getState().registerEvent(id),
+//       useEventStore.getState().registerEvent(id, user.id)
+//     ]);
+
+//       message.success('报名成功！');
+//     } catch (error) {
+//       message.error('报名失败: ' + error.message);
+//     } finally {
+//       setIsModalVisible(false);
+//     }
+//   };
+
+
+//   if (!currentEvent) {
+//     return (
+//       <div style={{ padding: 24, textAlign: 'center' }}>
+//         <Alert 
+//           type="warning"
+//           message="活动不存在或已被删除"
+//           description={
+//             <Link to="/">
+//               <Button type="primary" style={{ marginTop: 16 }}>
+//                 返回首页
+//               </Button>
+//             </Link>
+//           }
+//         />
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
+//       <Card>
+//         <Title level={2}>{currentEvent.title}</Title>
+        
+//         <Space size={[8, 16]} wrap style={{ marginBottom: 16 }}>
+//           <Tag color="blue">{currentEvent.department}</Tag>
+//           <Tag color="purple">{currentEvent.role}</Tag>
+//           <Tag color={currentEvent.status === 'published' ? 'green' : 'orange'}>
+//             {currentEvent.status === 'published' ? '已发布' : '未发布'}
+//           </Tag>
+//           {isRegistered && <Tag color="gold">已报名</Tag>}
+//         </Space>
+
+//         <Text paragraph style={{ fontSize: 16 }}>{currentEvent.description}</Text>
+
+//         <Space direction="vertical" size={12} style={{ marginTop: 24 }}>
+//           <div>
+//             <Text strong>活动时间：</Text>
+//             <Text>
+//               {dayjs(currentEvent.startTime).format('YYYY-MM-DD HH:mm')} ~ 
+//               {dayjs(currentEvent.endTime).format('YYYY-MM-DD HH:mm')}
+//             </Text>
+//           </div>
+
+//           <div>
+//             <Text strong>报名时间：</Text>
+//             <Text>
+//               {dayjs(currentEvent.registerstartTime).format('YYYY-MM-DD HH:mm')} ~ 
+//               {dayjs(currentEvent.registerendTime).format('YYYY-MM-DD HH:mm')}
+//             </Text>
+//             {isRegistrationClosed && (
+//               <Tag color="red" style={{ marginLeft: 8 }}>报名已截止</Tag>
+//             )}
+//           </div>
+
+//           <div>
+//             <Text strong>活动地点：</Text>
+//             <Text>{currentEvent.location}</Text>
+//           </div>
+
+//           {/* <div>
+//             <Text strong>剩余名额：</Text>
+//             <Text>{remainingSpots} / {currentEvent.capacity}</Text>
+//           </div> */}
+//         </Space>
+
+//         <div style={{ marginTop: 24 }}>
+//           <Button 
+//             type="primary" 
+//             size="large"
+//             onClick={handleRegister}
+//             disabled={isRegistered || isRegistrationClosed}
+//           >
+//             {isRegistered ? '已报名' : '立即报名'}
+//           </Button>
+//         </div>
+//       </Card>
+
+//       <Modal
+//         title="确认报名"
+//         visible={isModalVisible}
+//         onOk={confirmRegistration}
+//         onCancel={() => setIsModalVisible(false)}
+//         okText="确认报名"
+//         cancelText="取消"
+//       >
+//         <p>确定要报名参加 "{currentEvent.title}" 活动吗？</p>
+//         <Alert 
+//           type="info"
+//           message="报名须知"
+//           description={
+//             <ul>
+//               <li>报名后不可取消</li>
+//               <li>请按时参加活动</li>
+//               <li>剩余名额：{remainingSpots}</li>
+//             </ul>
+//           }
+//         />
+//       </Modal>
+//     </div>
+//   );
+// }
+
+
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Card, Tag, Space, Typography, Button, Modal, message, Alert, Spin } from 'antd';
 import dayjs from 'dayjs';
@@ -352,230 +596,208 @@ import { useEventStore } from '@/stores/eventStore';
 const { Title, Text } = Typography;
 
 // 与HomePage共享的模拟数据
-const mockEvents = [
-      {
-          id: 'example-id1',
-          title: '校园开放日',
-          description: '欢迎新生参观校园',
-          startTime: '2025-10-01T10:00:00',
-          endTime: '2025-10-01T12:00:00',
-          registerstartTime: '2025-09-01T10:00:00',
-          registerendTime: '2025-09-30T12:00:00',
-          location: '学校主广场',
-          status: 'published',
-          capacity: 100,
-          department: 'UG',
-          role: 'student'
-         
-        },
-        {
-          id: 'example-id2',
-          title: '编程工作坊',
-          description: '学习基础编程技能',
-          startTime: '2025-10-02T14:00:00',
-          endTime: '2025-10-02T16:00:00',
-          registerstartTime: '2025-09-15T10:00:00',
-          registerendTime: '2025-10-01T12:00:00',
-          location: '计算机实验室',
-          status: 'published',
-          capacity: 30,
-          department: 'CS',
-          role: 'student'
-      
-          
-        },
-        {
-          id: 'example-id3',
-          title: '艺术展览',
-          description: '学生艺术作品展示',
-          startTime: '2025-10-03T09:00:00',
-          endTime: '2025-10-05T17:00:00',
-          registerstartTime: '2025-09-10T10:00:00',
-          registerendTime: '2025-10-02T12:00:00',
-          location: '艺术楼展厅',
-          status: 'published',
-          capacity: 200,
-          department: 'ART',
-          role: 'student',
-          coverImage: 'https://example.com/art-exhibition.jpg',
-          
-        }
-  // 其他活动数据保持与HomePage一致...
-
-
-
+export const mockEvents = [
+    {
+        id: 'example-id1',
+        title: '校园开放日',
+        description: '欢迎新生参观校园',
+        startTime: '2025-10-01T10:00:00',
+        endTime: '2025-10-01T12:00:00',
+        registerstartTime: '2025-09-01T10:00:00',
+        registerendTime: '2025-09-30T12:00:00',
+        location: '学校主广场',
+        status: 'published',
+        capacity: 100,
+        participants: [], // 初始化参与者列表
+        department: 'UG',
+        role: 'student'
+    },
+    {
+        id: 'example-id2',
+        title: '编程工作坊',
+        description: '学习基础编程技能',
+        startTime: '2025-10-02T14:00:00',
+        endTime: '2025-10-02T16:00:00',
+        registerstartTime: '2025-09-15T10:00:00',
+        registerendTime: '2025-10-01T12:00:00',
+        location: '计算机实验室',
+        status: 'published',
+        capacity: 30,
+        participants: [], // 初始化参与者列表
+        department: 'CS',
+        role: 'student'
+    },
+    {
+        id: 'example-id3',
+        title: '艺术展览',
+        description: '学生艺术作品展示',
+        startTime: '2025-10-03T09:00:00',
+        endTime: '2025-10-05T17:00:00',
+        registerstartTime: '2025-09-10T10:00:00',
+        registerendTime: '2025-10-02T12:00:00',
+        location: '艺术楼展厅',
+        status: 'published',
+        capacity: 200,
+        participants: [], // 初始化参与者列表
+        department: 'ART',
+        role: 'student',
+        coverImage: 'https://example.com/art-exhibition.jpg',
+    }
 ];
 
 export default function EventDetailPage() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { user, isLoggedIn, registeredEvents = [], registerEvent } = useAuthStore();
+    const { events } = useEventStore();
+    const [currentEvent, setCurrentEvent] = useState(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
-  const { id } = useParams();
-  const navigate = useNavigate();
-  // const { user, isLoggedIn, registeredEvents, registerEvent } = useAuthStore();
-  const { user, isLoggedIn, registeredEvents = [], registerEvent } = useAuthStore(); // 添加
-  const { events } = useEventStore();
-  const [currentEvent, setCurrentEvent] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  // 初始化加载事件数据
-  useEffect(() => {
-    const combinedEvents = [...events, ...mockEvents];
-    const event = combinedEvents.find(e => e.id === id);
-    setCurrentEvent(event || null);
-    setIsLoading(false); // 正确设置加载状态
-  }, [id, events]);
+    // 初始化加载事件数据
+    useEffect(() => {
+        const combinedEvents = [...events, ...mockEvents];
+        const event = combinedEvents.find(e => e.id === id);
+        setCurrentEvent(event || null);
+        setIsLoading(false);
+    }, [id, events]);
 
+    if (isLoading) {
+        return <Spin tip="加载中..." />;
+    }
 
-
-  if (isLoading) {
-    return <Spin tip="加载中..." />;
-  }
-  // ...其他代码
-
-
-  // 实时状态计算
-  // const isRegistered = registeredEvents.includes(id);
-  const isRegistered = (registeredEvents || []).includes(id);
-  const remainingSpots = currentEvent?.capacity - currentEvent?.participants?.length || 0;
-  const isRegistrationClosed = currentEvent 
-    ? dayjs().isAfter(dayjs(currentEvent.registerendTime))
-    : true;
+    const isRegistered = (registeredEvents || []).includes(id);
+    const remainingSpots = currentEvent?.capacity - currentEvent?.participants.length || 0;
+    const isRegistrationClosed = currentEvent ? dayjs().isAfter(dayjs(currentEvent.registerendTime)) : true;
 
     const handleRegister = async () => {
-      // 增强状态检查
-      const authState = useAuthStore.getState();
-      
-      if (!authState.isLoggedIn || !authState.user) {
-        message.warning('请先登录！');
-        navigate('/login', { state: { from: location.pathname } }); // 保留当前路径
-        return;
-      }
-    
-      // if (remainingSpots <= 0) {
-      //   message.error('该活动已满员');
-      //   return;
-      // }
-    
-      setIsModalVisible(true);
+        if (!isLoggedIn || !user) {
+            message.warning('请先登录！');
+            navigate('/login', { state: { from: location.pathname } });
+            return;
+        }
+
+        if (remainingSpots <= 0) {
+            message.error('该活动已满员');
+            return;
+        }
+
+        setIsModalVisible(true);
     };
 
-  const confirmRegistration = async () => {
-    try {
-      // 更新全局状态
-      registerEvent(id);
-      
-      // 更新本地事件数据
-      setCurrentEvent(prev => ({
-        ...prev,
-        participants: [...prev.participants, user.id],
-        registered: prev.registered + 1
-      }));
+    const confirmRegistration = async () => {
+        try {
+            // 更新参与者列表
+            setCurrentEvent(prev => ({
+                ...prev,
+                participants: [...prev.participants, user.id]
+            }));
 
-      message.success('报名成功！');
-    } catch (error) {
-      message.error('报名失败: ' + error.message);
-    } finally {
-      setIsModalVisible(false);
+            // 更新全局状态
+            registerEvent(id);
+            useAuthStore.getState().registerEvent(id);
+            useEventStore.getState().registerEvent(id, user.id);
+            // 显示成功消息
+            message.success('报名成功！');
+        } catch (error) {
+            message.error('报名失败: ' + error.message);
+        } finally {
+            setIsModalVisible(false);
+        }
+    };
+
+    if (!currentEvent) {
+        return (
+            <div style={{ padding: 24, textAlign: 'center' }}>
+                <Alert
+                    type="warning"
+                    message="活动不存在或已被删除"
+                    description={
+                        <Link to="/">
+                            <Button type="primary" style={{ marginTop: 16 }}>
+                                返回首页
+                            </Button>
+                        </Link>
+                    }
+                />
+            </div>
+        );
     }
-  };
 
-  if (!currentEvent) {
     return (
-      <div style={{ padding: 24, textAlign: 'center' }}>
-        <Alert 
-          type="warning"
-          message="活动不存在或已被删除"
-          description={
-            <Link to="/">
-              <Button type="primary" style={{ marginTop: 16 }}>
-                返回首页
-              </Button>
-            </Link>
-          }
-        />
-      </div>
-    );
-  }
+        <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
+            <Card>
+                <Title level={2}>{currentEvent.title}</Title>
+                <Space size={[8, 16]} wrap style={{ marginBottom: 16 }}>
+                    <Tag color="blue">{currentEvent.department}</Tag>
+                    <Tag color="purple">{currentEvent.role}</Tag>
+                    <Tag color={currentEvent.status === 'published' ? 'green' : 'orange'}>
+                        {currentEvent.status === 'published' ? '已发布' : '未发布'}
+                    </Tag>
+                    {isRegistered && <Tag color="gold">已报名</Tag>}
+                </Space>
 
-  return (
-    <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
-      <Card>
-        <Title level={2}>{currentEvent.title}</Title>
-        
-        <Space size={[8, 16]} wrap style={{ marginBottom: 16 }}>
-          <Tag color="blue">{currentEvent.department}</Tag>
-          <Tag color="purple">{currentEvent.role}</Tag>
-          <Tag color={currentEvent.status === 'published' ? 'green' : 'orange'}>
-            {currentEvent.status === 'published' ? '已发布' : '未发布'}
-          </Tag>
-          {isRegistered && <Tag color="gold">已报名</Tag>}
-        </Space>
+                <Text paragraph style={{ fontSize: 16 }}>{currentEvent.description}</Text>
 
-        <Text paragraph style={{ fontSize: 16 }}>{currentEvent.description}</Text>
+                <Space direction="vertical" size={12} style={{ marginTop: 24 }}>
+                    <div>
+                        <Text strong>活动时间：</Text>
+                        <Text>
+                            {dayjs(currentEvent.startTime).format('YYYY-MM-DD HH:mm')} ~ 
+                            {dayjs(currentEvent.endTime).format('YYYY-MM-DD HH:mm')}
+                        </Text>
+                    </div>
 
-        <Space direction="vertical" size={12} style={{ marginTop: 24 }}>
-          <div>
-            <Text strong>活动时间：</Text>
-            <Text>
-              {dayjs(currentEvent.startTime).format('YYYY-MM-DD HH:mm')} ~ 
-              {dayjs(currentEvent.endTime).format('YYYY-MM-DD HH:mm')}
-            </Text>
-          </div>
+                    <div>
+                        <Text strong>报名时间：</Text>
+                        <Text>
+                            {dayjs(currentEvent.registerstartTime).format('YYYY-MM-DD HH:mm')} ~ 
+                            {dayjs(currentEvent.registerendTime).format('YYYY-MM-DD HH:mm')}
+                        </Text>
+                        {isRegistrationClosed && (
+                            <Tag color="red" style={{ marginLeft: 8 }}>报名已截止</Tag>
+                        )}
+                    </div>
 
-          <div>
-            <Text strong>报名时间：</Text>
-            <Text>
-              {dayjs(currentEvent.registerstartTime).format('YYYY-MM-DD HH:mm')} ~ 
-              {dayjs(currentEvent.registerendTime).format('YYYY-MM-DD HH:mm')}
-            </Text>
-            {isRegistrationClosed && (
-              <Tag color="red" style={{ marginLeft: 8 }}>报名已截止</Tag>
-            )}
-          </div>
+                    <div>
+                        <Text strong>活动地点：</Text>
+                        <Text>{currentEvent.location}</Text>
+                    </div>
+                </Space>
 
-          <div>
-            <Text strong>活动地点：</Text>
-            <Text>{currentEvent.location}</Text>
-          </div>
+                <div style={{ marginTop: 24 }}>
+                    <Button 
+                        type="primary" 
+                        size="large"
+                        onClick={handleRegister}
+                        disabled={isRegistered || isRegistrationClosed}
+                    >
+                        {isRegistered ? '已报名' : '立即报名'}
+                    </Button>
+                </div>
+            </Card>
 
-          {/* <div>
-            <Text strong>剩余名额：</Text>
-            <Text>{remainingSpots} / {currentEvent.capacity}</Text>
-          </div> */}
-        </Space>
-
-        <div style={{ marginTop: 24 }}>
-          <Button 
-            type="primary" 
-            size="large"
-            onClick={handleRegister}
-            disabled={isRegistered || isRegistrationClosed}
-          >
-            {isRegistered ? '已报名' : '立即报名'}
-          </Button>
+            <Modal
+                title="确认报名"
+                visible={isModalVisible}
+                onOk={confirmRegistration}
+                onCancel={() => setIsModalVisible(false)}
+                okText="确认报名"
+                cancelText="取消"
+            >
+                <p>确定要报名参加 "{currentEvent.title}" 活动吗？</p>
+                <Alert 
+                    type="info"
+                    message="报名须知"
+                    description={
+                        <ul>
+                            <li>报名后不可取消</li>
+                            <li>请按时参加活动</li>
+                            <li>剩余名额：{remainingSpots}</li>
+                        </ul>
+                    }
+                />
+            </Modal>
         </div>
-      </Card>
-
-      <Modal
-        title="确认报名"
-        visible={isModalVisible}
-        onOk={confirmRegistration}
-        onCancel={() => setIsModalVisible(false)}
-        okText="确认报名"
-        cancelText="取消"
-      >
-        <p>确定要报名参加 "{currentEvent.title}" 活动吗？</p>
-        <Alert 
-          type="info"
-          message="报名须知"
-          description={
-            <ul>
-              <li>报名后不可取消</li>
-              <li>请按时参加活动</li>
-              <li>剩余名额：{remainingSpots}</li>
-            </ul>
-          }
-        />
-      </Modal>
-    </div>
-  );
+    );
 }

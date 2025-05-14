@@ -34,7 +34,9 @@ export default function Header() {
     },
     { key: 'dashboard', icon: <UnorderedListOutlined />, label: <Link to="/dashboard">数据看板</Link> },
     { key: 'profile', icon: <SettingOutlined />, label: <Link to="/profile">个人中心</Link> },
-    { key: 'events', icon: <UnorderedListOutlined />, label: <Link to="/events:id">活动详情</Link> }
+    { key: 'my-activities', icon: <UnorderedListOutlined />, label: <Link to="/my-activities">我的活动</Link> },
+    { key: 'events', icon: <UnorderedListOutlined />, label: <Link to="/events:id">活动详情</Link> },
+    { key: 'edit-event', icon: <UnorderedListOutlined />, label: <Link to="/edit-event">活动修改</Link> }
   ];
   const userMenu = (
     <Menu

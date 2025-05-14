@@ -172,24 +172,63 @@ import { create } from 'zustand';
 
 export const useEventStore = create((set) => ({
   events: [],
+
+  checkInEvent: (eventId, userId) => {
+    set(state => ({
+      events: state.events.map(event => 
+        event.id === eventId ? {
+          ...event,
+          participants: event.participants.map(p => 
+            p.userId === userId ? { ...p, status: 'checked-in' } : p
+          )
+        } : event
+      )
+    }));
+  },
+
+  submitFeedback: (eventId, feedback) => {
+    set(state => ({
+      events: state.events.map(event => 
+        event.id === eventId ? {
+          ...event,
+          participants: event.participants.map(p => 
+            p.userId === feedback.userId ? { ...p, feedback } : p
+          )
+        } : event
+      )
+    }));
+  },
   
+
   fetchEvents: async () => {
     const response = await fetch('/api/events');
     set({ events: await response.json() });
   },
   
-  registerEvent: async (eventId) => {
+
+  // 增强报名方法
+  registerEvent: async (eventId, userId) => {
     const response = await fetch(`/api/events/${eventId}/register`, {
-      method: 'POST'
+      method: 'POST',
+      body: JSON.stringify({ userId })
     });
+    
     const updatedEvent = await response.json();
     
     set(state => ({
       events: state.events.map(e => 
-        e.id === eventId ? updatedEvent : e
+        e.id === eventId ? {
+          ...updatedEvent,
+          participants: [...e.participants, { 
+            userId, 
+            status: 'pending',
+            registeredAt: new Date().toISOString() 
+          }]
+        } : e
       )
-    }));
+    }));    
     
+
     return updatedEvent;
   }
 }));

@@ -138,27 +138,24 @@ export default function ProfilePage () {
 
   return (
         <div style={{ 
-            marginLeft: 220,
+            marginLeft: 140,
+            marginRight: 140,
             padding: '24px'
           }}>
-      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-        <Button type="primary" onClick={() => {navigate('/profile/edit')}}>修改个人信息</Button>
-        <Button type="default" onClick={() => {}}>查看我的活动</Button>
-        <Button type="default" onClick={() => {}}>退出登录</Button>
-    </div>
-    //     <div className="profile-container">
-//       <Card title="个人信息" extra={<Button onClick={logout}>退出登录</Button>}>
-//         <Descriptions column={1}>
-//           <Descriptions.Item label="用户名">{user?.username}</Descriptions.Item>
-//           <Descriptions.Item label="角色">{user?.role}</Descriptions.Item>
-//           <Descriptions.Item label="注册时间">
-//             {dayjs(user?.createdAt).format('YYYY-MM-DD HH:mm')}
-//           </Descriptions.Item>
-//         </Descriptions>
-//       </Card>
-//     </div>
 
-    <div className="profile-container">
+     <div className="profile-container">
+       <Card title="个人信息" extra={<Button onClick={logout}>退出登录</Button>}>
+         <Descriptions column={1}>
+           <Descriptions.Item label="用户名">{user?.username}</Descriptions.Item>
+           <Descriptions.Item label="角色">{user?.role}</Descriptions.Item>
+           <Descriptions.Item label="注册时间">
+             {dayjs(user?.createdAt).format('YYYY-MM-DD HH:mm')}
+           </Descriptions.Item>
+         </Descriptions>
+       </Card>
+     </div>
+
+    {/* <div className="profile-container">
       <h2>个人中心</h2>
       <p>欢迎，{user?.username}！</p>
       <p>您的角色：{user?.role}</p>
@@ -166,7 +163,7 @@ export default function ProfilePage () {
       <p>审核中：<Tag color="orange">等待审核</Tag></p>
       <p>报名成功：<Tag color="green">报名成功</Tag></p>
       <p>报名失败：<Tag color="red">报名失败</Tag></p>
-      <p>已取消：<Tag color="volcano">已取消</Tag></p>
+      <p>已取消：<Tag color="volcano">已取消</Tag></p> */}
 
 
       {/* 使用 Tabs 组件 */}
@@ -210,7 +207,6 @@ export default function ProfilePage () {
           />
         )}
       </Modal>
-    </div>
     </div>
   );
 };

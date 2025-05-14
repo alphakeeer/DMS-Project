@@ -225,10 +225,20 @@ import { PermissionNotice } from '@/components/PermissionNotice';
 
 
 import ActivationPage from '@/pages/Activation' // 需要创建这个文件
+import MyActivitiesPage from '@/pages/MyActivities';
+
+import { lazy } from 'react';
+
+const MyActivitiesPage = lazy(() => import('@/pages/MyActivities'));
 export const router = () => (
   <Routes>
     {/* 组织者专属路由 */}
     <Route path="/events/create" element={
+      <OrganizerRoute>
+        <CreateEventPage />
+      </OrganizerRoute>
+    }/>
+    <Route path="/events/edit" element={
       <OrganizerRoute>
         <CreateEventPage />
       </OrganizerRoute>
@@ -248,6 +258,17 @@ export const router = () => (
 
     {/* 激活页面 */}
     <Route path="/activate" element={<ActivationPage />} />
+    {/* 我的活动 */}
+    <Route
+      path="/my-activities"
+      element={
+        <PrivateRoute>
+          <Suspense fallback={<Spin fullscreen />}>
+            <MyActivitiesPage />
+          </Suspense>
+        </PrivateRoute>
+      }
+    />
   </Routes>
 );
 

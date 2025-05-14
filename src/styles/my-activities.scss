@@ -1,0 +1,19 @@
+.my-activities {
+    padding: 24px;
+  
+    .activity-meta {
+      color: #666;
+      font-size: 0.9em;
+      margin-bottom: 12px;
+    }
+  
+    .ant-card-extra {
+      padding: 0 !important;
+    }
+  
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+  }

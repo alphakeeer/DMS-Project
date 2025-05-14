@@ -27,6 +27,7 @@ import LoginPage from '@/pages/Login'
 import ProfilePage from '@/pages/Profile'
 import NotFoundPage from '@/pages/NotFound'
 import RegisterPage from '@/pages/Register'
+import MyActivitiesPage from './pages/MyActivities';
 
 // 路由配置
 const router = createBrowserRouter([
@@ -39,6 +40,14 @@ const router = createBrowserRouter([
       { path: 'events/:id', element: <EventDetailPage /> },
       {
         path: 'create-event',
+        element: (
+          <PrivateRoute roles={['organizer']}>
+            <CreateEventPage />
+          </PrivateRoute>
+        )
+      },
+      {
+        path: 'edit-event',
         element: (
           <PrivateRoute roles={['organizer']}>
             <CreateEventPage />
@@ -61,15 +70,15 @@ const router = createBrowserRouter([
           </PrivateRoute>
         )
       }
-      // ,
-      // {
-      //   path: 'profile',
-      //   element: (
-      //     <PrivateRoute>
-      //       <ProfilePage />
-      //     </PrivateRoute>
-      //   )
-      // }
+      ,
+      {
+        path: 'my-activities',
+        element: (
+          <PrivateRoute>
+            <MyActivitiesPage />
+          </PrivateRoute>
+        )
+      }
     ]
   },
   {
