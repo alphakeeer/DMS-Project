@@ -39,7 +39,8 @@ def create_app(config_name="dev"):
     db.init_app(app)
 
     # # 注册蓝图
-    # from routes import api_bp
-    # app.register_blueprint(api_bp)
+    from routes import api, auth
+    app.register_blueprint(api)
+    app.register_blueprint(auth)
 
     return app
