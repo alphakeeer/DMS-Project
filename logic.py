@@ -43,11 +43,11 @@ class Account_Layer:
         """
         # 1. 检查用户ID是否已存在
         if MemberDAO.get_member_by_id(id):
-            raise Error(f"用户ID {id} 已存在")
+            raise ValueError(f"用户ID {id} 已存在")
             
         # 2. 检查账号是否已存在
         if MemberDAO.get_member_by_account(account):
-            raise AccountAlreadyExistsError(f"账号 {account} 已被注册")
+            raise ValueError(f"账号 {account} 已被注册")
             
         # 3. 验证密码复杂度
         if len(password) < 8:
@@ -227,17 +227,17 @@ class Activity_Management_Layer:
         """
         # 检查时间有效性
         if reg_start >= reg_end:
-            raise Error("注册开始时间必须早于注册结束时间")
+            raise ValueError("注册开始时间必须早于注册结束时间")
             
         if start_time >= end_time:
-            raise Error("活动开始时间必须早于活动结束时间")
+            raise ValueError("活动开始时间必须早于活动结束时间")
             
         if reg_end > start_time:
-            raise Error("注册结束时间不能晚于活动开始时间")
+            raise ValueError("注册结束时间不能晚于活动开始时间")
 
         # 检查容量设置
         if max_capacity < min_capacity:
-            raise Error("最大容量不能小于最小容量")
+            raise ValueError("最大容量不能小于最小容量")
 
         # 如果有地点，检查地点是否被占用
         if location:
@@ -247,7 +247,7 @@ class Activity_Management_Layer:
                 end_time=end_time
             )
             if conflicting_event:
-                raise Error(f"场地 {location} 在指定时间段已被占用")
+                raise ValueError(f"场地 {location} 在指定时间段已被占用")
 
         # 创建事件
         new_event = EventDAO.create_event(
