@@ -11,8 +11,8 @@ logic.py — 业务逻辑层
   • 不要直接操作 db.session，也不要拼接 SQL  
   • 不要处理 HTTP 请求/响应细节，只做“给定输入，返回业务结果”
 """
-from models import Department, Role, ObjectType, Member, Event, EventParticipation, AccessToken, EventRegistration, EventAudience
-from dao import SystemDAO, MemberDAO, EventDAO, RegistrationDAO, ParticipationDAO
+from backend.models import Department, Role, ObjectType, Member, Event, EventParticipation, AccessToken, EventRegistration, EventAudience
+from backend.dao import SystemDAO, MemberDAO, EventDAO, RegistrationDAO, ParticipationDAO
 from typing import Tuple, Optional
 from datetime import datetime
 
@@ -43,21 +43,21 @@ class Account_Layer:
         """
         # 1. 检查用户ID是否已存在
         if MemberDAO.get_member_by_id(id):
-            raise Error(f"用户ID {id} 已存在")
+            raise ValueError(f"用户ID {id} 已存在")
             
         # 2. 检查账号是否已存在
         if MemberDAO.get_member_by_account(account):
-            raise AccountAlreadyExistsError(f"账号 {account} 已被注册")
+            raise ValueError(f"账号 {account} 已被注册")
             
         # 3. 验证密码复杂度
+        if len(password) < 8:
+            raise ValueError("密码长度至少为8位")
         if not any(c.isupper() for c in password):
-            raise Error("密码必须包含至少一个大写字母")
+            raise ValueError("密码必须包含至少一个大写字母")
         if not any(c.islower() for c in password):
-            raise Error("密码必须包含至少一个小写字母")
+            raise ValueError("密码必须包含至少一个小写字母")
         if not any(c.isdigit() for c in password):
-            raise Error("密码必须包含至少一个数字")
-        if len(password) < 8: 
-            raise Error("密码长度至少为8位")    
+            raise ValueError("密码必须包含至少一个数字")     
             
         # 4. 所有检查通过，创建用户
         member = MemberDAO.create_member(
@@ -74,7 +74,7 @@ class Account_Layer:
                 MemberDAO.update_can_create_event(member_id)
                 SystemDAO.update_access_token(id, activation_code)
             else:
-                raise Error("激活码不存在")
+                raise ValueError("激活码不存在")
         return member, "用户注册成功"
 
     @staticmethod
@@ -200,7 +200,7 @@ class Activity_Management_Layer:
         start_time: datetime,
         end_time: datetime,
         location: Optional[str] = None,
-        max_capacity: Optional[int] = None,
+        max_capacity: Optional[int] = 500,
         min_capacity: int = 0,
     ) -> Event:
         """
@@ -227,17 +227,17 @@ class Activity_Management_Layer:
         """
         # 检查时间有效性
         if reg_start >= reg_end:
-            raise Error("注册开始时间必须早于注册结束时间")
+            raise ValueError("注册开始时间必须早于注册结束时间")
             
         if start_time >= end_time:
-            raise Error("活动开始时间必须早于活动结束时间")
+            raise ValueError("活动开始时间必须早于活动结束时间")
             
         if reg_end > start_time:
-            raise Error("注册结束时间不能晚于活动开始时间")
+            raise ValueError("注册结束时间不能晚于活动开始时间")
 
         # 检查容量设置
         if max_capacity < min_capacity:
-            raise Error("最大容量不能小于最小容量")
+            raise ValueError("最大容量不能小于最小容量")
 
         # 如果有地点，检查地点是否被占用
         if location:
@@ -247,7 +247,7 @@ class Activity_Management_Layer:
                 end_time=end_time
             )
             if conflicting_event:
-                raise Error(f"场地 {location} 在指定时间段已被占用")
+                raise ValueError(f"场地 {location} 在指定时间段已被占用")
 
         # 创建事件
         new_event = EventDAO.create_event(
