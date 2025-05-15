@@ -89,7 +89,22 @@ export default function LoginPage() {
           // 直接调用store的login方法
           await useAuthStore.getState().login(values);
           
-
+const onFinish = async (values) => {
+    setLoading(true);
+    try {
+      const data = await apiLogin(values);
+      await login({
+        token: data.token,
+        user: data.user
+      });
+      message.success('登录成功');
+      navigate(location.state?.from || '/');
+    } catch (error) {
+      message.error(error.message || '登录失败，请重试');
+    } finally {
+      setLoading(false);
+    }
+  };
       // // 正确调用登录方法
       // await login({ 
       //   token: res.token,
@@ -134,9 +149,9 @@ export default function LoginPage() {
       >
         <Form.Item
           name="username"
-          rules={[{ required: true, message: '请输入用户名!' }]}
+          rules={[{ required: true, message: '请输入邮箱!' }]}
         >
-          <Input prefix={<UserOutlined />} placeholder="用户名" />
+          <Input prefix={<UserOutlined />} placeholder="邮箱" />
         </Form.Item>
 
         <Form.Item

@@ -585,7 +585,7 @@
 //   );
 // }
 
-
+import { mockEvents } from '@/data/mockEvents'; // 从独立文件导入
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Card, Tag, Space, Typography, Button, Modal, message, Alert, Spin } from 'antd';
 import dayjs from 'dayjs';
@@ -595,55 +595,55 @@ import { useEventStore } from '@/stores/eventStore';
 
 const { Title, Text } = Typography;
 
-// 与HomePage共享的模拟数据
-export const mockEvents = [
-    {
-        id: 'example-id1',
-        title: '校园开放日',
-        description: '欢迎新生参观校园',
-        startTime: '2025-10-01T10:00:00',
-        endTime: '2025-10-01T12:00:00',
-        registerstartTime: '2025-09-01T10:00:00',
-        registerendTime: '2025-09-30T12:00:00',
-        location: '学校主广场',
-        status: 'published',
-        capacity: 100,
-        participants: [], // 初始化参与者列表
-        department: 'UG',
-        role: 'student'
-    },
-    {
-        id: 'example-id2',
-        title: '编程工作坊',
-        description: '学习基础编程技能',
-        startTime: '2025-10-02T14:00:00',
-        endTime: '2025-10-02T16:00:00',
-        registerstartTime: '2025-09-15T10:00:00',
-        registerendTime: '2025-10-01T12:00:00',
-        location: '计算机实验室',
-        status: 'published',
-        capacity: 30,
-        participants: [], // 初始化参与者列表
-        department: 'CS',
-        role: 'student'
-    },
-    {
-        id: 'example-id3',
-        title: '艺术展览',
-        description: '学生艺术作品展示',
-        startTime: '2025-10-03T09:00:00',
-        endTime: '2025-10-05T17:00:00',
-        registerstartTime: '2025-09-10T10:00:00',
-        registerendTime: '2025-10-02T12:00:00',
-        location: '艺术楼展厅',
-        status: 'published',
-        capacity: 200,
-        participants: [], // 初始化参与者列表
-        department: 'ART',
-        role: 'student',
-        coverImage: 'https://example.com/art-exhibition.jpg',
-    }
-];
+// // 与HomePage共享的模拟数据
+// export const mockEvents = [
+//     {
+//         id: 'example-id1',
+//         title: '校园开放日',
+//         description: '欢迎新生参观校园',
+//         startTime: '2025-10-01T10:00:00',
+//         endTime: '2025-10-01T12:00:00',
+//         registerstartTime: '2025-09-01T10:00:00',
+//         registerendTime: '2025-09-30T12:00:00',
+//         location: '学校主广场',
+//         status: 'published',
+//         capacity: 100,
+//         participants: [], // 初始化参与者列表
+//         department: 'UG',
+//         role: 'student'
+//     },
+//     {
+//         id: 'example-id2',
+//         title: '编程工作坊',
+//         description: '学习基础编程技能',
+//         startTime: '2025-10-02T14:00:00',
+//         endTime: '2025-10-02T16:00:00',
+//         registerstartTime: '2025-09-15T10:00:00',
+//         registerendTime: '2025-10-01T12:00:00',
+//         location: '计算机实验室',
+//         status: 'published',
+//         capacity: 30,
+//         participants: [], // 初始化参与者列表
+//         department: 'CS',
+//         role: 'student'
+//     },
+//     {
+//         id: 'example-id3',
+//         title: '艺术展览',
+//         description: '学生艺术作品展示',
+//         startTime: '2025-10-03T09:00:00',
+//         endTime: '2025-10-05T17:00:00',
+//         registerstartTime: '2025-09-10T10:00:00',
+//         registerendTime: '2025-10-02T12:00:00',
+//         location: '艺术楼展厅',
+//         status: 'published',
+//         capacity: 200,
+//         participants: [], // 初始化参与者列表
+//         department: 'ART',
+//         role: 'student',
+//         coverImage: 'https://example.com/art-exhibition.jpg',
+//     }
+// ];
 
 export default function EventDetailPage() {
     const { id } = useParams();
@@ -697,8 +697,13 @@ export default function EventDetailPage() {
             registerEvent(id);
             useAuthStore.getState().registerEvent(id);
             useEventStore.getState().registerEvent(id, user.id);
+
             // 显示成功消息
             message.success('报名成功！');
+
+            setTimeout(() => {
+                navigate('/my-activities'); // 新增导航逻辑  
+            }, 1500); // 1.5秒后跳转          
         } catch (error) {
             message.error('报名失败: ' + error.message);
         } finally {

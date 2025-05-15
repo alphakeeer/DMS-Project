@@ -68,6 +68,48 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '@/api/events';
 
+// stores/authStore.js
+import { makeAutoObservable } from 'mobx';
+
+
+
+class AuthStore {
+  user = null;
+
+  constructor() {
+    makeAutoObservable(this);
+  }
+
+  // 新增更新用户方法
+  updateUser = async (userId, newData) => {
+    try {
+      // 实际开发中这里应调用API
+      this.user = { 
+        ...this.user,
+        ...newData
+      };
+      return true;
+    } catch (error) {
+      throw new Error('更新用户信息失败');
+    }
+  };
+  updateProfileWithCode = async (code) => {
+    try {
+      if (code === 'ORG2023') { // 示例验证逻辑
+        this.user.isOrganizer = true;
+        return true;
+      }
+      throw new Error('无效的激活码');
+    } catch (error) {
+      throw error;
+    }
+  };
+}
+
+export default new AuthStore();
+
+
+
 
 export const useAuthStore = create(
   persist(

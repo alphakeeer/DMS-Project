@@ -24,6 +24,8 @@ export default function Header() {
   // 侧边栏菜单项配置
   const sideMenuItems = [
     { key: 'home', icon: <UserOutlined />, label: <Link to="/">首页</Link> },
+    { key: 'profile', icon: <SettingOutlined />, label: <Link to="/profile">个人中心</Link> },
+    { key: 'my-activities', icon: <UnorderedListOutlined />, label: <Link to="/my-activities">我的活动</Link> },
     { 
       key: 'create', 
       icon: <BookOutlined />,
@@ -32,21 +34,12 @@ export default function Header() {
         else navigate('/create-event');
       }}>创建活动</span>
     },
-    { key: 'dashboard', icon: <UnorderedListOutlined />, label: <Link to="/dashboard">数据看板</Link> },
-    { key: 'profile', icon: <SettingOutlined />, label: <Link to="/profile">个人中心</Link> },
-    { key: 'my-activities', icon: <UnorderedListOutlined />, label: <Link to="/my-activities">我的活动</Link> },
-    { key: 'events', icon: <UnorderedListOutlined />, label: <Link to="/events:id">活动详情</Link> },
-    { key: 'edit-event', icon: <UnorderedListOutlined />, label: <Link to="/edit-event">活动修改</Link> }
+    { key: 'edit-event', icon: <UnorderedListOutlined />, label: <Link to="/edit-event">活动修改</Link> },
+    { key: 'dashboard', icon: <UnorderedListOutlined />, label: <Link to="/dashboard">数据看板</Link> }
+
+    // { key: 'events', icon: <UnorderedListOutlined />, label: <Link to="/events:id">活动详情</Link> },
+
   ];
-  const userMenu = (
-    <Menu
-      items={[
-        { key: 'profile', label: <Link to="/profile">个人中心</Link> },
-        { type: 'divider' },
-        { key: 'logout', label: '退出登录', onClick: logout }
-      ]}
-    />
-  )
   const location = useLocation()
   
   // 动态计算选中项
@@ -99,27 +92,8 @@ export default function Header() {
         mode="vertical" 
         items={sideMenuItems} 
       />
-          {/* <Menu
-            selectedKeys={[location.pathname.slice(1) || 'home']}
-            mode="inline"
-            theme="light"
-            items={sideMenuItems}
-          /> */}
         </div>
       </Sider>
-
-      {/* <div className="user-panel">
-        {user ? (
-          <Dropdown overlay={userMenu} trigger={['click']}>
-            <div className="user-info">
-              <Avatar src={user.avatar} style={{ marginRight: 8 }}/>
-              <span className="username">{user.name}</span>
-            </div>
-          </Dropdown>
-        ) : (
-          <Link to="/login">登录/注册</Link>
-        )}
-      </div> */}
     </div>
     </div> 
   )

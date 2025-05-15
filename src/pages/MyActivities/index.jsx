@@ -453,6 +453,7 @@ import { useEffect, useState, useMemo } from 'react';
 import dayjs from 'dayjs';
 import { useAuthStore } from '@/stores/authStore';
 import { useEventStore } from '@/stores/eventStore';
+import { mockEvents } from '@/data/mockEvents'; // 从独立文件导入
 
 export default function MyActivitiesPage() {
   const { user, registeredEvents = [] } = useAuthStore();
@@ -460,74 +461,6 @@ export default function MyActivitiesPage() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  const mockEvents = [
-    {
-        id: 'example-id1',
-        title: '校园开放日',
-        description: '欢迎新生参观校园',
-        //签到状态测试中
-        startTime: '2025-05-01T10:00:00',
-        endTime: '2025-06-01T12:00:00',
-        registerstartTime: '2025-04-01T10:00:00',
-        registerendTime: '2025-04-30T12:00:00',
-        location: '学校主广场',
-        status: 'published',
-        capacity: 100,
-        participants: [
-          {
-            userId: user?.id, // 使用当前用户ID
-            status: 'pending', // 初始状态
-            registeredAt: dayjs().format()
-          }
-        ],
-        department: 'UG',
-        role: 'student'
-    },
-    {
-        id: 'example-id2',
-        title: '编程工作坊',
-        description: '学习基础编程技能',
-        startTime: '2025-10-02T14:00:00',
-        endTime: '2025-10-02T16:00:00',
-        registerstartTime: '2025-09-15T10:00:00',
-        registerendTime: '2025-10-01T12:00:00',
-        location: '计算机实验室',
-        status: 'published',
-        capacity: 30,
-        participants: [
-          {
-            userId: user?.id, // 使用当前用户ID
-            status: 'pending', // 初始状态
-            registeredAt: dayjs().format()
-          }
-        ],
-        department: 'CS',
-        role: 'student'
-    },
-    {
-        id: 'example-id3',
-        title: '艺术展览',
-        description: '学生艺术作品展示',
-        startTime: '2025-10-03T09:00:00',
-        endTime: '2025-10-05T17:00:00',
-        registerstartTime: '2025-09-10T10:00:00',
-        registerendTime: '2025-10-02T12:00:00',
-        location: '艺术楼展厅',
-        status: 'published',
-        capacity: 200,
-        participants: [
-          {
-            userId: user?.id, // 使用当前用户ID
-            status: 'pending', // 初始状态
-            registeredAt: dayjs().format()
-          }
-        ],
-        department: 'ART',
-        role: 'student',
-        coverImage: 'https://example.com/art-exhibition.jpg',
-    }
-];
 
 
 
