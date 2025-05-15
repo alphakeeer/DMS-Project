@@ -1,12 +1,11 @@
 import pytest
 from datetime import datetime, timedelta
-from logic import Account_Layer, Activity_Management_Layer, Registration_Excution_Layer
-from models import Department, Role, ObjectType, Member, Event, EventParticipation, AccessToken, EventRegistration, EventAudience
-from models import db
-from datetime import datetime
-from dao import MemberDAO, EventDAO, RegistrationDAO, ParticipationDAO
+from backend.logic import Account_Layer, Activity_Management_Layer, Registration_Excution_Layer
+from backend.models import Department, Role, ObjectType, Member, Event, EventParticipation, AccessToken, EventRegistration, EventAudience
+from backend.models import db
+from backend.dao import MemberDAO, EventDAO, RegistrationDAO, ParticipationDAO
 from unittest.mock import patch, MagicMock
-from app import create_app, db
+from backend.app import create_app, db
 app = create_app()
 app.app_context().push()  # 手动推送应用上下文
 db.create_all()
@@ -37,9 +36,9 @@ event_end = now + timedelta(days=4)
 class TestAccountLayer:
     """测试账户相关逻辑"""
     
-    @patch('logic.MemberDAO.get_member_by_id')
-    @patch('logic.MemberDAO.get_member_by_account')
-    @patch('logic.MemberDAO.create_member')
+    @patch('backend.logic.MemberDAO.get_member_by_id')
+    @patch('backend.logic.MemberDAO.get_member_by_account')
+    @patch('backend.logic.MemberDAO.create_member')
     def test_register_member_success(self, mock_create, mock_get_account, mock_get_id):
         """测试成功注册用户"""
         # 模拟DAO层返回
@@ -61,7 +60,7 @@ class TestAccountLayer:
         assert msg == "用户注册成功"
         mock_create.assert_called_once()
         
-    @patch('logic.MemberDAO.get_member_by_id')
+    @patch('backend.logic.MemberDAO.get_member_by_id')
     def test_register_member_id_exists(self, mock_get_id):
         """测试用户ID已存在的情况"""
         mock_get_id.return_value = Member(id=TEST_MEMBER_ID)
@@ -77,7 +76,7 @@ class TestAccountLayer:
         
         assert "用户ID" in str(excinfo.value)
         
-    @patch('logic.MemberDAO.get_member_by_account')
+    @patch('backend.logic.MemberDAO.get_member_by_account')
     def test_register_member_account_exists(self, mock_get_account):
         """测试账号已存在的情况"""
         mock_get_account.return_value = Member(account=TEST_ACCOUNT)
@@ -113,8 +112,8 @@ class TestAccountLayer:
                 )
             assert expected_error in str(excinfo.value)
         
-    @patch('logic.MemberDAO.get_member_by_account')
-    @patch('logic.Member.check_password')
+    @patch('backend.logic.MemberDAO.get_member_by_account')
+    @patch('backend.logic.Member.check_password')
     def test_login_success(self, mock_check_pwd, mock_get_account):
         """测试成功登录"""
         # 准备模拟数据
@@ -139,8 +138,8 @@ class TestAccountLayer:
         result = Account_Layer.login("", "")
         assert result['success'] is False
         assert "不能为空" in result['message']
-        
-    @patch('logic.MemberDAO.get_member_by_account')
+
+    @patch('backend.logic.MemberDAO.get_member_by_account')
     def test_login_account_not_exist(self, mock_get_account):
         """测试账号不存在"""
         mock_get_account.return_value = None
@@ -148,9 +147,9 @@ class TestAccountLayer:
         result = Account_Layer.login("nonexist@test.com", TEST_PASSWORD)
         assert result['success'] is False
         assert "账号不存在" in result['message']
-        
-    @patch('logic.MemberDAO.get_member_by_account')
-    @patch('logic.Member.check_password')
+
+    @patch('backend.logic.MemberDAO.get_member_by_account')
+    @patch('backend.logic.Member.check_password')
     def test_login_wrong_password(self, mock_check_pwd, mock_get_account):
         """测试密码错误"""
         mock_member = MagicMock()
@@ -164,7 +163,7 @@ class TestAccountLayer:
 class TestActivityManagementLayer:
     """测试活动管理逻辑"""
     
-    @patch('logic.EventDAO.create_event')
+    @patch('backend.logic.EventDAO.create_event')
     def test_create_event_success(self, mock_create):
         """测试成功创建活动"""
         mock_create.return_value = Event(id=TEST_EVENT_ID)
@@ -223,7 +222,7 @@ class TestActivityManagementLayer:
             )
         assert "最大容量不能小于最小容量" in str(excinfo.value)
         
-    @patch('logic.EventDAO.get_event_by_location_and_time')
+    @patch('backend.logic.EventDAO.get_event_by_location_and_time')
     def test_create_event_location_conflict(self, mock_get_event):
         """测试场地时间冲突"""
         mock_get_event.return_value = [MagicMock()]
@@ -241,9 +240,9 @@ class TestActivityManagementLayer:
             )
         assert "已被占用" in str(excinfo.value)
         
-    @patch('logic.EventDAO.get_event_by_id')
-    @patch('logic.RegistrationDAO.delete_registrations_by_event')
-    @patch('logic.EventDAO.delete_event')
+    @patch('backend.logic.EventDAO.get_event_by_id')
+    @patch('backend.logic.RegistrationDAO.delete_registrations_by_event')
+    @patch('backend.logic.EventDAO.delete_event')
     def test_cancel_event_success(self, mock_delete_event, mock_delete_registrations, mock_get_event):
         """测试成功取消未来活动"""
         # 准备测试数据
@@ -269,7 +268,7 @@ class TestActivityManagementLayer:
         mock_delete_registrations.assert_called_once_with(TEST_EVENT_ID)
         mock_delete_event.assert_called_once_with(future_event)
         
-    @patch('logic.EventDAO.get_event_by_id')
+    @patch('backend.logic.EventDAO.get_event_by_id')
     def test_cancel_event_not_exist(self, mock_get_event):
         """测试取消不存在的活动"""
         mock_get_event.return_value = None
@@ -278,7 +277,7 @@ class TestActivityManagementLayer:
         assert success is False
         assert "事件不存在" in msg
         
-    @patch('logic.EventDAO.get_event_by_id')
+    @patch('backend.logic.EventDAO.get_event_by_id')
     def test_cancel_event_started(self, mock_get_event):
         """测试取消已开始的活动"""
         mock_event = MagicMock()
@@ -292,8 +291,8 @@ class TestActivityManagementLayer:
 class TestRegistrationExecutionLayer:
     """测试报名执行逻辑"""
     
-    @patch('logic.RegistrationDAO.get_registration')
-    @patch('logic.RegistrationDAO.create_registration')
+    @patch('backend.logic.RegistrationDAO.get_registration')
+    @patch('backend.logic.RegistrationDAO.create_registration')
     def test_register_for_event_success(self, mock_create, mock_get):
         """测试成功报名活动"""
         mock_get.return_value = None
@@ -302,8 +301,8 @@ class TestRegistrationExecutionLayer:
         success, msg = Registration_Excution_Layer.register_for_event(TEST_EVENT_ID, TEST_MEMBER_ID)
         assert success is True
         mock_create.assert_called_once_with(TEST_EVENT_ID, TEST_MEMBER_ID)
-        
-    @patch('logic.RegistrationDAO.get_registration')
+
+    @patch('backend.logic.RegistrationDAO.get_registration')
     def test_register_for_event_already_registered(self, mock_get):
         """测试重复报名"""
         mock_get.return_value = MagicMock()
@@ -311,9 +310,9 @@ class TestRegistrationExecutionLayer:
         success, msg = Registration_Excution_Layer.register_for_event(TEST_EVENT_ID, TEST_MEMBER_ID)
         assert success is False
         assert "已经报名" in msg
-        
-    @patch('logic.RegistrationDAO.get_registration')
-    @patch('logic.RegistrationDAO.delete_registration')
+
+    @patch('backend.logic.RegistrationDAO.get_registration')
+    @patch('backend.logic.RegistrationDAO.delete_registration')
     def test_cancel_registration_success(self, mock_del, mock_get):
         """测试成功取消报名"""
         mock_get.return_value = MagicMock()
@@ -322,8 +321,8 @@ class TestRegistrationExecutionLayer:
         success, msg = Registration_Excution_Layer.cancel_registration(TEST_EVENT_ID, TEST_MEMBER_ID)
         assert success is True
         mock_del.assert_called_once_with(TEST_EVENT_ID, TEST_MEMBER_ID)
-        
-    @patch('logic.RegistrationDAO.get_registration')
+
+    @patch('backend.logic.RegistrationDAO.get_registration')
     def test_cancel_registration_not_registered(self, mock_get):
         """测试取消未报名的活动"""
         mock_get.return_value = None
@@ -331,10 +330,10 @@ class TestRegistrationExecutionLayer:
         success, msg = Registration_Excution_Layer.cancel_registration(TEST_EVENT_ID, TEST_MEMBER_ID)
         assert success is False
         assert "尚未报名" in msg
-        
-    @patch('logic.EventDAO.get_event_by_id')
-    @patch('logic.RegistrationDAO.get_registration')
-    @patch('logic.ParticipationDAO.get_participation')
+
+    @patch('backend.logic.EventDAO.get_event_by_id')
+    @patch('backend.logic.RegistrationDAO.get_registration')
+    @patch('backend.logic.ParticipationDAO.get_participation')
     def test_get_user_registration_status(self, mock_get_part, mock_get_reg, mock_get_event):
         """测试获取用户报名状态"""
         # 模拟活动未结束
@@ -361,8 +360,8 @@ class TestRegistrationExecutionLayer:
         assert is_reg is False
         assert "未报名" in msg
         
-    @patch('logic.RegistrationDAO.get_registrations_by_event')
-    @patch('logic.EventParticipationDAO.create_participation')
+    @patch('backend.logic.RegistrationDAO.get_registrations_by_event')
+    @patch('backend.logic.EventParticipationDAO.create_participation')
     def test_close_registration(self, mock_create, mock_get_regs):
         """测试关闭报名并确定参与者"""
         # 准备模拟数据
@@ -379,8 +378,8 @@ class TestRegistrationExecutionLayer:
         assert len(unsuccessful) == 5
         assert mock_create.call_count == 10
         
-    @patch('logic.ParticipationDAO.get_participation')
-    @patch('logic.ParticipationDAO.check_in')
+    @patch('backend.logic.ParticipationDAO.get_participation')
+    @patch('backend.logic.ParticipationDAO.check_in')
     def test_check_in_participant(self, mock_check_in, mock_get_part):
         """测试参与者签到"""
         mock_part = MagicMock()
@@ -391,7 +390,7 @@ class TestRegistrationExecutionLayer:
         assert result == mock_part
         mock_check_in.assert_called_once_with(TEST_EVENT_ID, TEST_MEMBER_ID)
         
-    @patch('logic.ParticipationDAO.get_participation')
+    @patch('backend.logic.ParticipationDAO.get_participation')
     def test_check_in_participant_not_participated(self, mock_get_part):
         """测试未参与者签到"""
         mock_get_part.return_value = None
@@ -399,8 +398,8 @@ class TestRegistrationExecutionLayer:
         with pytest.raises(ValueError) as excinfo:
             Registration_Excution_Layer.check_in_participant(TEST_EVENT_ID, TEST_MEMBER_ID)
         assert "没有参与" in str(excinfo.value)
-        
-    @patch('logic.Registration_Excution_Layer.check_in_participant')
+
+    @patch('backend.logic.Registration_Excution_Layer.check_in_participant')
     def test_batch_check_in(self, mock_check_in):
         """测试批量签到"""
         mock_check_in.side_effect = [None, ValueError("错误"), None, None]
